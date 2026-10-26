@@ -55,6 +55,19 @@
   th { color:var(--mut); font-weight:500; font-size:12px }
   td,th { padding:11px 4px; text-align:left; border-bottom:1px solid var(--sep); font-size:14px; font-variant-numeric:tabular-nums }
   tr:last-child td { border-bottom:0 }
+  .tiles { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:12px }
+  .tiles .tile:last-child:nth-child(odd) { grid-column:1 / -1 }
+  @media (min-width:700px) { .tiles { grid-template-columns:repeat(5,1fr) } .tiles .tile:last-child:nth-child(odd) { grid-column:auto } }
+  .tile { background:var(--card); border-radius:20px; padding:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px; min-height:112px }
+  .tl { font-size:12px; font-weight:600; color:var(--mut); letter-spacing:.02em; text-transform:uppercase }
+  .tv { font-size:28px; font-weight:700; letter-spacing:-.02em; line-height:1.1; font-variant-numeric:tabular-nums; white-space:nowrap }
+  .tv small { font-size:13px; font-weight:500; color:var(--mut); margin-left:4px; letter-spacing:0 }
+  .td { font-size:12px; font-weight:500; color:var(--mut); margin-top:auto }
+  .td.good { color:var(--green) } .td.bad { color:var(--run) }
+  .bar { height:6px; border-radius:99px; background:var(--fill); overflow:hidden; margin-top:2px }
+  .bar.lg { height:10px; margin-top:14px }
+  .bar i { display:block; height:100%; width:0; border-radius:99px; transition:width .6s cubic-bezier(.2,.8,.2,1) }
+  #readyBar { background:var(--green) }
   .tab { display:none } .tab.on { display:block; animation:fade .25s ease }
   @keyframes fade { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
   #login { display:none; position:fixed; inset:0; background:var(--bg); z-index:9; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:24px }
@@ -94,8 +107,8 @@
     <div class="card"><b>Swim pace (min/100m)</b><canvas id="swimChart" height="150"></canvas></div>
   </section>
   <section id="t-rec" class="tab">
-    <div class="card"><div class="mut">READINESS</div><div class="big" id="ready">–</div><div class="mut" id="readyHint"></div></div>
-    <div class="grid" id="recTiles"></div>
+    <div class="card"><div class="mut">READINESS</div><div class="big" id="ready">–</div><div class="bar lg"><i id="readyBar"></i></div><div class="mut" id="readyHint" style="margin-top:10px"></div></div>
+    <div class="tiles" id="recTiles"></div>
     <div class="card"><b>HRV (overnight avg, ms) vs 7-day baseline</b><canvas id="hrvChart" height="150"></canvas></div>
     <div class="card"><b>Resting HR (bpm)</b><canvas id="rhrChart" height="120"></canvas></div>
     <div class="card"><b>Sleep (hours) &amp; score</b><canvas id="sleepChart" height="150"></canvas></div>
@@ -247,12 +260,28 @@ function renderRecovery(days) {
     score = Math.round(Math.max(0, Math.min(100, score)));
     $('#ready').textContent = n ? score + ' / 100' : '–';
     $('#readyHint').textContent = !n ? 'No health data yet' : score>=75 ? 'Good to go — hard session OK' : score>=50 ? 'Moderate — keep intensity controlled' : 'Low — easy day or rest';
-    const tile = (t,v) => `<div class="card"><div class="mut">${t}</div><div class="big">${v ?? '–'}</div></div>`;
-    $('#recTiles').innerHTML = tile('HRV (last night)', last.hrv_night_avg ? Math.round(last.hrv_night_avg)+' ms' : null)
-      + tile('Resting HR', last.resting_hr ? last.resting_hr+' bpm' : null)
-      + tile('Sleep', last.sleep_s ? hms(last.sleep_s) : null)
-      + tile('Sleep score', last.sleep_score)
-      + tile('Body Battery', last.body_battery_high);
+    $('#readyBar').style.width = (n ? score : 0) + '%';
+    $('#readyBar').style.background = score >= 75 ? C('--green') : score >= 50 ? C('--bike') : C('--run');
+    const prev = k => avg(vals(all.slice(-29, -1), k));
+    // dir: 1 = higher is better, -1 = lower is better, 0 = neutral
+    const tile = (label, v, unit, k, dir, pct, color) => {
+      const has = v != null && v !== '';
+      let delta = '', cls = '';
+      const b = k ? prev(k) : null;
+      if (has && b != null && typeof v === 'number') {
+        const d = v - b;
+        const good = dir === 0 ? '' : (d * dir > 0 ? 'good' : d * dir < 0 ? 'bad' : '');
+        cls = good; delta = (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d).toFixed(Math.abs(d) < 10 ? 1 : 0) + ' vs 28d avg';
+      } else if (!has) delta = 'No data';
+      const bar = has && pct != null ? `<div class="bar"><i style="width:${Math.max(0, Math.min(100, pct))}%;background:${color}"></i></div>` : '';
+      return `<div class="tile"><div class="tl">${label}</div><div class="tv">${has ? v : '–'}${has && unit ? `<small>${unit}</small>` : ''}</div>${bar}<div class="td ${cls}">${delta}</div></div>`;
+    };
+    $('#recTiles').innerHTML =
+        tile('HRV', last.hrv_night_avg ? Math.round(last.hrv_night_avg) : null, 'ms', 'hrv_night_avg', 1)
+      + tile('Resting HR', last.resting_hr || null, 'bpm', 'resting_hr', -1)
+      + tile('Sleep', last.sleep_s ? hms(last.sleep_s) : null, '', null, 0)
+      + tile('Sleep score', last.sleep_score ?? null, '/100', 'sleep_score', 1, last.sleep_score, C('--indigo'))
+      + tile('Body Battery', last.body_battery_high ?? null, '/100', 'body_battery_high', 1, last.body_battery_high, C('--swim'));
   }
 
   mkChart('hrvChart', {type:'line', data:{labels, datasets:[
