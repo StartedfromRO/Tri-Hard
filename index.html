@@ -3,49 +3,85 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0f172a">
-<title>Tri Tracker</title>
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<title>Tri-hard-thlete</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root { --bg:#0f172a; --card:#1e293b; --txt:#e2e8f0; --mut:#94a3b8;
-          --swim:#38bdf8; --bike:#facc15; --run:#fb7185; --other:#a78bfa; }
-  * { box-sizing:border-box }
-  body { margin:0; font:15px system-ui,sans-serif; background:var(--bg); color:var(--txt); padding-bottom:20px }
-  header { padding:16px; display:flex; justify-content:space-between; align-items:center }
-  h1 { margin:0; font-size:20px }
-  button,select { background:var(--card); color:var(--txt); border:1px solid #334155; border-radius:8px; padding:8px 12px }
-  main { padding:0 16px; max-width:900px; margin:auto }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px }
-  .card { background:var(--card); border-radius:12px; padding:14px; margin-bottom:12px }
-  .big { font-size:24px; font-weight:700 } .mut { color:var(--mut); font-size:12px }
-  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px }
-  table { width:100%; border-collapse:collapse } td,th { padding:6px 4px; text-align:left; border-bottom:1px solid #334155; font-size:13px }
-  nav { position:sticky; top:0; z-index:5; background:var(--card); display:flex; justify-content:space-around; padding:10px; margin-bottom:12px }
-  nav button { border:0; background:none } nav .on { color:var(--swim) }
-  .tab { display:none } .tab.on { display:block }
-  #status { font-size:12px; color:var(--mut); padding:0 16px }
+  :root {
+    color-scheme: light dark;
+    --bg:#F2F2F7; --card:#FFFFFF; --txt:#1C1C1E; --mut:#8E8E93; --sep:rgba(60,60,67,.12);
+    --grid:rgba(60,60,67,.10); --fill:rgba(118,118,128,.12); --accent:#007AFF; --glass:rgba(242,242,247,.72);
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05);
+    --swim:#32ADE6; --bike:#FF9500; --run:#FF2D55; --other:#AF52DE; --green:#34C759; --indigo:#5856D6;
+  }
+  @media (prefers-color-scheme: dark) { :root {
+    --bg:#000000; --card:#1C1C1E; --txt:#F5F5F7; --mut:#98989F; --sep:rgba(84,84,88,.45);
+    --grid:rgba(84,84,88,.30); --fill:rgba(118,118,128,.24); --accent:#0A84FF; --glass:rgba(0,0,0,.65);
+    --shadow:none;
+    --swim:#64D2FF; --bike:#FF9F0A; --run:#FF375F; --other:#BF5AF2; --green:#30D158; --indigo:#7D7AFF;
+  } }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent }
+  body { margin:0; font:15px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,sans-serif;
+         background:var(--bg); color:var(--txt); padding-bottom:calc(24px + env(safe-area-inset-bottom));
+         -webkit-font-smoothing:antialiased }
+  header { max-width:900px; margin:auto; padding:calc(20px + env(safe-area-inset-top)) 20px 8px;
+           display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap }
+  h1 { margin:0; font-size:32px; line-height:1.1; font-weight:700; letter-spacing:-.03em }
+  #status { font-size:13px; color:var(--mut); margin-top:4px }
+  .ctl { display:flex; gap:8px; align-items:center }
+  button,select { font:inherit; font-size:14px; font-weight:500; color:var(--accent); background:var(--fill); border:0;
+                  border-radius:999px; padding:8px 14px; cursor:pointer; transition:opacity .15s, transform .15s }
+  button:active { opacity:.6; transform:scale(.97) }
+  select { appearance:none; -webkit-appearance:none; padding-right:14px; color:var(--txt) }
+  #sync { background:var(--accent); color:#fff }
+  #signout { background:none; color:var(--mut); padding:8px 6px }
+  nav { position:sticky; top:0; z-index:5; padding:8px 20px 12px; max-width:900px; margin:auto }
+  nav .seg { display:flex; gap:2px; padding:3px; border-radius:12px; background:var(--fill) }
+  nav::before { content:""; position:absolute; inset:0 0 0 0; z-index:-1; background:var(--glass);
+                -webkit-backdrop-filter:saturate(180%) blur(20px); backdrop-filter:saturate(180%) blur(20px) }
+  nav button { flex:1; background:none; color:var(--txt); border-radius:9px; padding:7px 4px; font-size:13px; font-weight:500 }
+  nav button.on { background:var(--card); box-shadow:0 1px 3px rgba(0,0,0,.18); font-weight:600 }
+  main { padding:4px 20px 0; max-width:900px; margin:auto }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:12px }
+  .grid .card { margin:0 }
+  .card { background:var(--card); border-radius:20px; padding:18px; margin-bottom:12px; box-shadow:var(--shadow) }
+  .card > b { display:block; font-size:13px; font-weight:600; color:var(--mut); margin-bottom:12px; letter-spacing:.01em }
+  .big { font-size:30px; line-height:1.15; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums }
+  .mut { color:var(--mut); font-size:13px }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:1px }
+  table { width:100%; border-collapse:collapse }
+  th { color:var(--mut); font-weight:500; font-size:12px }
+  td,th { padding:11px 4px; text-align:left; border-bottom:1px solid var(--sep); font-size:14px; font-variant-numeric:tabular-nums }
+  tr:last-child td { border-bottom:0 }
+  .tab { display:none } .tab.on { display:block; animation:fade .25s ease }
+  @keyframes fade { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+  #login { display:none; position:fixed; inset:0; background:var(--bg); z-index:9; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:24px }
+  #login input { width:100%; max-width:320px; padding:14px 16px; font:inherit; color:var(--txt); background:var(--card);
+                 border:1px solid var(--sep); border-radius:14px; outline:none }
+  #login input:focus { border-color:var(--accent) }
+  #login button { width:100%; max-width:320px; padding:14px; border-radius:14px; background:var(--accent); color:#fff; font-weight:600; font-size:16px }
 </style>
 </head>
 <body>
 <header>
-  <h1>🏊 🚴 🏃 Tri Tracker</h1>
-  <div><select id="range"><option value="7">7d</option><option value="28" selected>4w</option><option value="90">12w</option><option value="365">1y</option></select>
-  <button id="sync">⟳ Sync</button> <button id="signout">⎋</button></div>
+  <div><h1>Tri-hard-thlete</h1><div id="status"></div></div>
+  <div class="ctl"><select id="range"><option value="7">7 days</option><option value="28" selected>4 weeks</option><option value="90">12 weeks</option><option value="365">1 year</option></select>
+  <button id="sync">Sync</button><button id="signout">Sign out</button></div>
 </header>
-<div id="login" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9;align-items:center;justify-content:center;flex-direction:column;gap:10px">
-  <h1>🏊 🚴 🏃 Tri Tracker</h1>
-  <input id="email" type="email" placeholder="Email" autocomplete="username" style="padding:10px;border-radius:8px;width:260px">
-  <input id="pw" type="password" placeholder="Password" autocomplete="current-password" style="padding:10px;border-radius:8px;width:260px">
+<div id="login">
+  <h1 style="margin-bottom:12px">Tri-hard-thlete</h1>
+  <input id="email" type="email" placeholder="Email" autocomplete="username">
+  <input id="pw" type="password" placeholder="Password" autocomplete="current-password">
   <button id="signin">Sign in</button><div id="loginErr" class="mut"></div>
 </div>
-<div id="status"></div>
-<nav>
+<nav><div class="seg">
   <button data-t="dash" class="on">Dashboard</button>
   <button data-t="perf">Performance</button>
   <button data-t="rec">Recovery</button>
   <button data-t="log">Log</button>
-</nav>
+</div></nav>
 <main>
   <section id="t-dash" class="tab on">
     <div class="grid" id="totals"></div>
@@ -77,7 +113,12 @@ const SUPABASE_URL = "https://euwbsqptvfxbpebgnmak.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_1GZreKWeSL7MHLooyDMXpA_Ism2J3Mz"; // publishable key (read-only via RLS)
 // ================================================================
 
-const COLORS = {swim:'#38bdf8', bike:'#facc15', run:'#fb7185', other:'#a78bfa'};
+const C = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const COLORS = {swim:C('--swim'), bike:C('--bike'), run:C('--run'), other:C('--other')};
+Chart.defaults.font.family = '-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif';
+Chart.defaults.elements.bar.borderRadius = 6;
+Chart.defaults.elements.line.borderWidth = 2.5;
+Chart.defaults.color = C('--mut');
 const $ = s => document.querySelector(s);
 let acts = [], health = [], charts = {};
 
@@ -135,7 +176,7 @@ const hms = s => { s = Math.round(s||0); const h=s/3600|0, m=(s%3600)/60|0; retu
 const km = m => (m/1000).toFixed(1);
 function mondayOf(d) { d = new Date(d); d.setHours(0,0,0,0); d.setDate(d.getDate() - (d.getDay()+6)%7); return d; }
 function mkChart(id, cfg) { charts[id]?.destroy(); charts[id] = new Chart($('#'+id), cfg); }
-const axis = {ticks:{color:'#94a3b8'}, grid:{color:'#334155'}};
+const axis = {ticks:{color:C('--mut')}, grid:{color:C('--grid')}, border:{display:false}};
 
 function render() {
   const days = +$('#range').value, cutoff = Date.now() - days*864e5;
@@ -157,13 +198,13 @@ function render() {
   const wk = Object.keys(weeks).sort().slice(-Math.max(4, Math.ceil(days/7)));
   mkChart('volChart', {type:'bar', data:{labels:wk.map(w=>w.slice(5)),
     datasets:['swim','bike','run'].map(sp=>({label:sp, backgroundColor:COLORS[sp], data:wk.map(w=>+weeks[w][sp].toFixed(2))}))},
-    options:{scales:{x:{...axis,stacked:true},y:{...axis,stacked:true}},plugins:{legend:{labels:{color:'#e2e8f0'}}}}});
+    options:{scales:{x:{...axis,stacked:true},y:{...axis,stacked:true}},plugins:{legend:{labels:{color:C('--txt')}}}}});
 
   // load ratio
   const hrs = d => acts.filter(a => new Date(a.start_time) >= Date.now()-d*864e5).reduce((s,a)=>s+(a.duration_s||0)/3600,0);
   const acute = hrs(7), chronic = hrs(28)/4, r = chronic ? acute/chronic : 0;
   $('#load').textContent = `${acute.toFixed(1)} / ${chronic.toFixed(1)} h  (ratio ${r.toFixed(2)})`;
-  $('#loadHint').textContent = r>1.5 ? '⚠️ Load spike — injury risk' : r>1.1 ? 'Building' : r>0.8 ? 'Maintaining' : 'Detraining / taper';
+  $('#loadHint').textContent = r>1.5 ? 'Load spike — injury risk' : r>1.1 ? 'Building' : r>0.8 ? 'Maintaining' : 'Detraining / taper';
 
   // performance trends
   const trend = (id, sp, fn, label, color) => {
@@ -205,7 +246,7 @@ function renderRecovery(days) {
     if (last.body_battery_high) { score += (last.body_battery_high-70)/4; n++; }
     score = Math.round(Math.max(0, Math.min(100, score)));
     $('#ready').textContent = n ? score + ' / 100' : '–';
-    $('#readyHint').textContent = !n ? 'No health data yet' : score>=75 ? '✅ Good to go — hard session OK' : score>=50 ? 'Moderate — keep intensity controlled' : '🛑 Low — easy day or rest';
+    $('#readyHint').textContent = !n ? 'No health data yet' : score>=75 ? 'Good to go — hard session OK' : score>=50 ? 'Moderate — keep intensity controlled' : 'Low — easy day or rest';
     const tile = (t,v) => `<div class="card"><div class="mut">${t}</div><div class="big">${v ?? '–'}</div></div>`;
     $('#recTiles').innerHTML = tile('HRV (last night)', last.hrv_night_avg ? Math.round(last.hrv_night_avg)+' ms' : null)
       + tile('Resting HR', last.resting_hr ? last.resting_hr+' bpm' : null)
@@ -215,19 +256,19 @@ function renderRecovery(days) {
   }
 
   mkChart('hrvChart', {type:'line', data:{labels, datasets:[
-    {label:'HRV', data:hs.map(h=>h.hrv_night_avg), borderColor:'#34d399', tension:.3, pointRadius:2},
-    {label:'7d baseline', data:hs.map(h=>{const v=base[idx.get(h.calendar_date)]; return v&&+v.toFixed(1)}), borderColor:'#94a3b8', borderDash:[5,5], pointRadius:0}]},
-    options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:'#e2e8f0'}}}}});
-  mkChart('rhrChart', {type:'line', data:{labels, datasets:[{data:hs.map(h=>h.resting_hr), borderColor:'#fb7185', tension:.3, pointRadius:2}]},
+    {label:'HRV', data:hs.map(h=>h.hrv_night_avg), borderColor:C('--green'), tension:.3, pointRadius:2},
+    {label:'7d baseline', data:hs.map(h=>{const v=base[idx.get(h.calendar_date)]; return v&&+v.toFixed(1)}), borderColor:C('--mut'), borderDash:[5,5], pointRadius:0}]},
+    options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}});
+  mkChart('rhrChart', {type:'line', data:{labels, datasets:[{data:hs.map(h=>h.resting_hr), borderColor:COLORS.run, tension:.3, pointRadius:2}]},
     options:{scales:{x:axis,y:axis},plugins:{legend:{display:false}}}});
   mkChart('sleepChart', {data:{labels, datasets:[
-    {type:'bar', label:'hours', data:hs.map(h=>h.sleep_s&&+(h.sleep_s/3600).toFixed(1)), backgroundColor:'#6366f1', yAxisID:'y'},
-    {type:'line', label:'score', data:hs.map(h=>h.sleep_score), borderColor:'#facc15', pointRadius:2, yAxisID:'y2'}]},
-    options:{scales:{x:axis,y:axis,y2:{...axis,position:'right',grid:{display:false}}},plugins:{legend:{labels:{color:'#e2e8f0'}}}}});
+    {type:'bar', label:'hours', data:hs.map(h=>h.sleep_s&&+(h.sleep_s/3600).toFixed(1)), backgroundColor:C('--indigo'), yAxisID:'y'},
+    {type:'line', label:'score', data:hs.map(h=>h.sleep_score), borderColor:COLORS.bike, pointRadius:2, yAxisID:'y2'}]},
+    options:{scales:{x:axis,y:axis,y2:{...axis,position:'right',grid:{display:false}}},plugins:{legend:{labels:{color:C('--txt')}}}}});
   mkChart('bbChart', {type:'line', data:{labels, datasets:[
-    {label:'high', data:hs.map(h=>h.body_battery_high), borderColor:'#38bdf8', pointRadius:1},
-    {label:'low', data:hs.map(h=>h.body_battery_low), borderColor:'#a78bfa', pointRadius:1}]},
-    options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:'#e2e8f0'}}}}});
+    {label:'high', data:hs.map(h=>h.body_battery_high), borderColor:COLORS.swim, pointRadius:1},
+    {label:'low', data:hs.map(h=>h.body_battery_low), borderColor:COLORS.other, pointRadius:1}]},
+    options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}});
 }
 
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
