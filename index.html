@@ -11,7 +11,7 @@
   :root { --bg:#0f172a; --card:#1e293b; --txt:#e2e8f0; --mut:#94a3b8;
           --swim:#38bdf8; --bike:#facc15; --run:#fb7185; --other:#a78bfa; }
   * { box-sizing:border-box }
-  body { margin:0; font:15px system-ui,sans-serif; background:var(--bg); color:var(--txt); padding-bottom:70px }
+  body { margin:0; font:15px system-ui,sans-serif; background:var(--bg); color:var(--txt); padding-bottom:20px }
   header { padding:16px; display:flex; justify-content:space-between; align-items:center }
   h1 { margin:0; font-size:20px }
   button,select { background:var(--card); color:var(--txt); border:1px solid #334155; border-radius:8px; padding:8px 12px }
@@ -21,7 +21,7 @@
   .big { font-size:24px; font-weight:700 } .mut { color:var(--mut); font-size:12px }
   .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px }
   table { width:100%; border-collapse:collapse } td,th { padding:6px 4px; text-align:left; border-bottom:1px solid #334155; font-size:13px }
-  nav { position:fixed; bottom:0; left:0; right:0; background:var(--card); display:flex; justify-content:space-around; padding:10px }
+  nav { position:sticky; top:0; z-index:5; background:var(--card); display:flex; justify-content:space-around; padding:10px; margin-bottom:12px }
   nav button { border:0; background:none } nav .on { color:var(--swim) }
   .tab { display:none } .tab.on { display:block }
   #status { font-size:12px; color:var(--mut); padding:0 16px }
@@ -40,6 +40,12 @@
   <button id="signin">Sign in</button><div id="loginErr" class="mut"></div>
 </div>
 <div id="status"></div>
+<nav>
+  <button data-t="dash" class="on">Dashboard</button>
+  <button data-t="perf">Performance</button>
+  <button data-t="rec">Recovery</button>
+  <button data-t="log">Log</button>
+</nav>
 <main>
   <section id="t-dash" class="tab on">
     <div class="grid" id="totals"></div>
@@ -63,12 +69,7 @@
     <div class="card"><table><thead><tr><th>Date</th><th>Sport</th><th>Dist</th><th>Time</th><th>HR</th></tr></thead><tbody id="rows"></tbody></table></div>
   </section>
 </main>
-<nav>
-  <button data-t="dash" class="on">Dashboard</button>
-  <button data-t="perf">Performance</button>
-  <button data-t="rec">Recovery</button>
-  <button data-t="log">Log</button>
-</nav>
+
 
 <script>
 // ===== CONFIG: paste from Supabase > Project Settings > API =====
