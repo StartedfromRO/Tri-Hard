@@ -304,7 +304,37 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button,.tab').forEach(e => e.classList.remove('on'));
   b.classList.add('on'); $('#t-'+b.dataset.t).classList.add('on');
 });
-$('#range').onchange = render; $('#sync').onclick = load; $('#signin').onclick = signIn; $('#signout').onclick = signOut;
+// Sync = ask the cloud to pull fresh data from Garmin, wait for it to finish, then reload.
+let syncing = false;
+async function syncNow() {
+  if (syncing || !sb) return load();
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return load();
+  let note = ''; syncing = true; $('#sync').disabled = true;
+  const call = (method) => fetch('/.netlify/functions/sync', { method, headers: { authorization: 'Bearer ' + session.access_token } });
+  try {
+    const r = await call('POST');
+    if (!r.ok) throw new Error('trigger failed (' + r.status + ')');
+    const { startedAt } = await r.json();
+    $('#status').textContent = 'Pulling from Garmin…';
+    const t0 = Date.now();
+    while (Date.now() - t0 < 150000) {
+      await new Promise(res => setTimeout(res, 5000));
+      const s = await (await call('GET')).json();
+      if (s.createdAt >= startedAt - 15000 && s.status === 'completed') {
+        if (s.conclusion !== 'success') note = 'Garmin pull failed — showing saved data';
+        break;
+      }
+    }
+  } catch (e) {
+    note = 'Could not start Garmin pull (' + e.message + ') — showing saved data';
+  }
+  syncing = false; $('#sync').disabled = false;
+  await load();
+  if (note) $('#status').textContent = note;
+}
+
+$('#range').onchange = render; $('#sync').onclick = syncNow; $('#signin').onclick = signIn; $('#signout').onclick = signOut;
 load();
 </script>
 </body>
