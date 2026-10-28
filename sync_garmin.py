@@ -61,6 +61,20 @@ for a in api.get_activities_by_date(start.isoformat(), today.isoformat()):
         "totalElevationGainInMeters": a.get("elevationGain"),
         "averageSpeedInMetersPerSecond": a.get("averageSpeed"),
         "averagePowerInWatts": ri(a.get("avgPower")),
+        "activityName": a.get("activityName"),
+        "activityTrainingLoad": a.get("activityTrainingLoad"),
+        "aerobicTrainingEffect": a.get("aerobicTrainingEffect"),
+        "anaerobicTrainingEffect": a.get("anaerobicTrainingEffect"),
+        "vO2MaxValue": a.get("vO2MaxValue"),
+        "avgRunCadence": a.get("averageRunningCadenceInStepsPerMinute"),
+        "avgBikeCadence": a.get("averageBikingCadenceInRevPerMinute"),
+        "avgSwimCadence": a.get("averageSwimCadenceInStrokesPerMinute"),
+        "avgSwolf": a.get("avgSwolf"),
+        "hrTimeInZone_1": a.get("hrTimeInZone_1"),
+        "hrTimeInZone_2": a.get("hrTimeInZone_2"),
+        "hrTimeInZone_3": a.get("hrTimeInZone_3"),
+        "hrTimeInZone_4": a.get("hrTimeInZone_4"),
+        "hrTimeInZone_5": a.get("hrTimeInZone_5"),
     })
 print("activities:", post({"activities": acts}) if acts else "none")
 

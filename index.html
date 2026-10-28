@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <title>Tri-hard-thlete</title>
@@ -11,66 +11,159 @@
 <style>
   :root {
     color-scheme: light dark;
-    --bg:#F2F2F7; --card:#FFFFFF; --txt:#1C1C1E; --mut:#8E8E93; --sep:rgba(60,60,67,.12);
-    --grid:rgba(60,60,67,.10); --fill:rgba(118,118,128,.12); --accent:#007AFF; --glass:rgba(242,242,247,.72);
-    --shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05);
-    --swim:#32ADE6; --bike:#FF9500; --run:#FF2D55; --other:#AF52DE; --green:#34C759; --indigo:#5856D6;
+    --bg:#F2F2F7; --card:#FFFFFF; --card2:#F9F9FB; --txt:#1C1C1E; --mut:#8E8E93;
+    --sep:rgba(60,60,67,.10); --grid:rgba(60,60,67,.08); --fill:rgba(118,118,128,.12);
+    --accent:#007AFF; --glass:rgba(242,242,247,.78);
+    --shadow:0 2px 8px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.04);
+    --border:rgba(0,0,0,.04);
+    --swim:#32ADE6; --bike:#FF9500; --run:#FF2D55; --other:#AF52DE;
+    --green:#34C759; --indigo:#5856D6; --teal:#5AC8FA; --yellow:#FFCC00;
   }
   @media (prefers-color-scheme: dark) { :root {
-    --bg:#000000; --card:#1C1C1E; --txt:#F5F5F7; --mut:#98989F; --sep:rgba(84,84,88,.45);
-    --grid:rgba(84,84,88,.30); --fill:rgba(118,118,128,.24); --accent:#0A84FF; --glass:rgba(0,0,0,.65);
-    --shadow:none;
-    --swim:#64D2FF; --bike:#FF9F0A; --run:#FF375F; --other:#BF5AF2; --green:#30D158; --indigo:#7D7AFF;
+    --bg:#000000; --card:#1C1C1E; --card2:#2C2C2E; --txt:#F5F5F7; --mut:#98989F;
+    --sep:rgba(84,84,88,.38); --grid:rgba(84,84,88,.22); --fill:rgba(118,118,128,.24);
+    --accent:#0A84FF; --glass:rgba(10,10,12,.75);
+    --shadow:0 4px 20px rgba(0,0,0,.35);
+    --border:rgba(255,255,255,.07);
+    --swim:#64D2FF; --bike:#FF9F0A; --run:#FF375F; --other:#BF5AF2;
+    --green:#30D158; --indigo:#7D7AFF; --teal:#64D2FF; --yellow:#FFD60A;
   } }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent }
-  body { margin:0; font:15px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,sans-serif;
-         background:var(--bg); color:var(--txt); padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  body { margin:0; font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter",system-ui,sans-serif;
+         background:var(--bg); color:var(--txt); padding-bottom:calc(36px + env(safe-area-inset-bottom));
          -webkit-font-smoothing:antialiased }
-  header { max-width:900px; margin:auto; padding:calc(20px + env(safe-area-inset-top)) 20px 8px;
-           display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap }
-  h1 { margin:0; font-size:32px; line-height:1.1; font-weight:700; letter-spacing:-.03em }
-  #status { font-size:13px; color:var(--mut); margin-top:4px }
+
+  header { max-width:960px; margin:auto; padding:calc(18px + env(safe-area-inset-top)) 20px 10px;
+           display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap }
+  .brand { display:flex; flex-direction:column; gap:4px }
+  .title-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+  h1 { margin:0; font-size:30px; line-height:1.08; font-weight:800; letter-spacing:-.035em }
+  #racePill { font-size:12px; font-weight:600; padding:5px 11px; border-radius:999px;
+              background:linear-gradient(135deg, rgba(10,132,255,.16), rgba(191,90,242,.16));
+              color:var(--accent); border:1px solid rgba(10,132,255,.25); cursor:pointer;
+              display:inline-flex; align-items:center; gap:6px }
+  #racePill span.phase { background:var(--accent); color:#fff; border-radius:999px; padding:1px 7px; font-size:10px; text-transform:uppercase; letter-spacing:.04em }
+  #status { font-size:12px; color:var(--mut) }
   .ctl { display:flex; gap:8px; align-items:center }
-  button,select { font:inherit; font-size:14px; font-weight:500; color:var(--accent); background:var(--fill); border:0;
-                  border-radius:999px; padding:8px 14px; cursor:pointer; transition:opacity .15s, transform .15s }
-  button:active { opacity:.6; transform:scale(.97) }
-  select { appearance:none; -webkit-appearance:none; padding-right:14px; color:var(--txt) }
-  #sync { background:var(--accent); color:#fff }
-  #signout { background:none; color:var(--mut); padding:8px 6px }
-  nav { position:sticky; top:0; z-index:5; padding:8px 20px 12px; max-width:900px; margin:auto }
-  nav .seg { display:flex; gap:2px; padding:3px; border-radius:12px; background:var(--fill) }
-  nav::before { content:""; position:absolute; inset:0 0 0 0; z-index:-1; background:var(--glass);
-                -webkit-backdrop-filter:saturate(180%) blur(20px); backdrop-filter:saturate(180%) blur(20px) }
-  nav button { flex:1; background:none; color:var(--txt); border-radius:9px; padding:7px 4px; font-size:13px; font-weight:500 }
-  nav button.on { background:var(--card); box-shadow:0 1px 3px rgba(0,0,0,.18); font-weight:600 }
-  main { padding:4px 20px 0; max-width:900px; margin:auto }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:12px }
+  button,select { font:inherit; font-size:13px; font-weight:600; color:var(--txt); background:var(--fill); border:0;
+                  border-radius:999px; padding:8px 14px; cursor:pointer; transition:opacity .15s, transform .15s, background .15s }
+  button:active { opacity:.7; transform:scale(.97) }
+  button:disabled { opacity:.45; cursor:default }
+  select { appearance:none; -webkit-appearance:none; padding-right:14px }
+  #sync { background:var(--accent); color:#fff; box-shadow:0 2px 10px rgba(10,132,255,.3) }
+  #signout { background:none; color:var(--mut); padding:8px 6px; font-weight:500 }
+
+  nav { position:sticky; top:0; z-index:5; padding:8px 20px 12px; max-width:960px; margin:auto }
+  nav .seg { display:flex; gap:3px; padding:3px; border-radius:14px; background:var(--fill); border:1px solid var(--border) }
+  nav::before { content:""; position:absolute; inset:0; z-index:-1; background:var(--glass);
+                -webkit-backdrop-filter:saturate(180%) blur(22px); backdrop-filter:saturate(180%) blur(22px) }
+  nav button { flex:1; background:none; color:var(--mut); border-radius:11px; padding:8px 6px; font-size:13px; font-weight:600 }
+  nav button.on { background:var(--card); color:var(--txt); box-shadow:0 2px 6px rgba(0,0,0,.14) }
+
+  main { padding:4px 20px 0; max-width:960px; margin:auto }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:12px }
+  @media (min-width:680px) { .grid { grid-template-columns:repeat(4,1fr) } }
   .grid .card { margin:0 }
-  .card { background:var(--card); border-radius:20px; padding:18px; margin-bottom:12px; box-shadow:var(--shadow) }
-  .card > b { display:block; font-size:13px; font-weight:600; color:var(--mut); margin-bottom:12px; letter-spacing:.01em }
-  .big { font-size:30px; line-height:1.15; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums }
-  .mut { color:var(--mut); font-size:13px }
+  .row2 { display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:12px }
+  @media (min-width:720px) { .row2 { grid-template-columns:1.15fr .85fr } }
+  .row2 .card { margin:0 }
+
+  .card { background:var(--card); border:1px solid var(--border); border-radius:22px; padding:18px; margin-bottom:12px; box-shadow:var(--shadow) }
+  .card-hd { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; gap:8px; flex-wrap:wrap }
+  .card-hd b, .card > b { display:block; font-size:12px; font-weight:700; color:var(--mut); text-transform:uppercase; letter-spacing:.05em }
+  .card > b { margin-bottom:12px }
+  .card-hd span { font-size:12px; color:var(--mut); font-weight:500 }
+
+  .sport-card { position:relative; overflow:hidden; display:flex; flex-direction:column; gap:4px }
+  .sport-top { display:flex; justify-content:space-between; align-items:center }
+  .sport-tag { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); display:flex; align-items:center; gap:6px }
+  .big { font-size:28px; line-height:1.12; font-weight:800; letter-spacing:-.025em; font-variant-numeric:tabular-nums }
+  .big small { font-size:14px; font-weight:600; color:var(--mut); margin-left:3px }
+  .mut { color:var(--mut); font-size:12.5px }
   .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:1px }
-  table { width:100%; border-collapse:collapse }
-  th { color:var(--mut); font-weight:500; font-size:12px }
-  td,th { padding:11px 4px; text-align:left; border-bottom:1px solid var(--sep); font-size:14px; font-variant-numeric:tabular-nums }
-  tr:last-child td { border-bottom:0 }
+
+  /* Discipline split & target bar */
+  .split-bar { display:flex; height:12px; border-radius:99px; overflow:hidden; background:var(--fill); gap:2px; margin:10px 0 }
+  .split-bar i { display:block; height:100%; transition:width .5s cubic-bezier(.2,.8,.2,1) }
+  .split-leg { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12px; font-weight:600 }
+  .goal-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; padding-top:12px; border-top:1px solid var(--sep) }
+
+  /* Consistency 28d calendar */
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:8px }
+  .cal-dow { font-size:10px; font-weight:700; color:var(--mut); text-align:center; text-transform:uppercase; padding-bottom:2px }
+  .cal-day { background:var(--card2); border:1px solid var(--border); border-radius:11px; padding:6px 4px; min-height:46px;
+             display:flex; flex-direction:column; align-items:center; justify-content:space-between; position:relative }
+  .cal-day.today { border-color:var(--accent) }
+  .cal-num { font-size:10px; color:var(--mut); font-weight:600; font-variant-numeric:tabular-nums }
+  .cal-dots { display:flex; gap:3px; flex-wrap:wrap; justify-content:center }
+  .cal-dots i { width:7px; height:7px; border-radius:50% }
+  .brick-tag { font-size:8px; font-weight:800; color:var(--bike); letter-spacing:.03em; text-transform:uppercase }
+
+  /* PMC summary pills */
+  .pmc-pills { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px }
+  .pmc-pill { background:var(--card2); border-radius:14px; padding:10px 12px; border:1px solid var(--border) }
+  .pmc-pill .lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--mut) }
+  .pmc-pill .val { font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:2px }
+
+  /* HR Zone polarization bar */
+  .z-row { display:grid; grid-template-columns:54px 1fr 48px; align-items:center; gap:10px; margin-bottom:7px; font-size:12px; font-variant-numeric:tabular-nums }
+  .z-row:last-child { margin-bottom:0 }
+  .z-lbl { font-weight:700; color:var(--mut) }
+  .z-track { height:9px; border-radius:99px; background:var(--fill); overflow:hidden }
+  .z-track i { display:block; height:100%; border-radius:99px; transition:width .5s ease }
+
+  /* Recovery tiles */
   .tiles { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:12px }
   .tiles .tile:last-child:nth-child(odd) { grid-column:1 / -1 }
   @media (min-width:700px) { .tiles { grid-template-columns:repeat(5,1fr) } .tiles .tile:last-child:nth-child(odd) { grid-column:auto } }
-  .tile { background:var(--card); border-radius:20px; padding:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px; min-height:112px }
-  .tl { font-size:12px; font-weight:600; color:var(--mut); letter-spacing:.02em; text-transform:uppercase }
-  .tv { font-size:28px; font-weight:700; letter-spacing:-.02em; line-height:1.1; font-variant-numeric:tabular-nums; white-space:nowrap }
-  .tv small { font-size:13px; font-weight:500; color:var(--mut); margin-left:4px; letter-spacing:0 }
-  .td { font-size:12px; font-weight:500; color:var(--mut); margin-top:auto }
+  .tile { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:6px; min-height:112px }
+  .tl { font-size:11px; font-weight:700; color:var(--mut); letter-spacing:.04em; text-transform:uppercase }
+  .tv { font-size:27px; font-weight:800; letter-spacing:-.02em; line-height:1.1; font-variant-numeric:tabular-nums; white-space:nowrap }
+  .tv small { font-size:13px; font-weight:600; color:var(--mut); margin-left:4px; letter-spacing:0 }
+  .td { font-size:12px; font-weight:600; color:var(--mut); margin-top:auto }
   .td.good { color:var(--green) } .td.bad { color:var(--run) }
   .bar { height:6px; border-radius:99px; background:var(--fill); overflow:hidden; margin-top:2px }
   .bar.lg { height:10px; margin-top:14px }
   .bar i { display:block; height:100%; width:0; border-radius:99px; transition:width .6s cubic-bezier(.2,.8,.2,1) }
   #readyBar { background:var(--green) }
-  .tab { display:none } .tab.on { display:block; animation:fade .25s ease }
-  @keyframes fade { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
-  #login { display:none; position:fixed; inset:0; background:var(--bg); z-index:9; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:24px }
+
+  /* Log filter + table */
+  .filter-bar { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap }
+  .filter-bar button { padding:6px 12px; font-size:12px; background:var(--card); border:1px solid var(--border); color:var(--mut) }
+  .filter-bar button.on { background:var(--accent); color:#fff; border-color:var(--accent) }
+  table { width:100%; border-collapse:collapse }
+  th { color:var(--mut); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em }
+  td,th { padding:12px 6px; text-align:left; border-bottom:1px solid var(--sep); font-size:13.5px; font-variant-numeric:tabular-nums }
+  tbody tr { cursor:pointer; transition:background .12s }
+  tbody tr:hover, tbody tr:active { background:var(--fill) }
+  tr:last-child td { border-bottom:0 }
+  .badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; margin-left:6px; background:rgba(255,149,0,.16); color:var(--bike); text-transform:uppercase }
+
+  /* Bottom Sheet Modal (Activity detail + Race/Goal settings) */
+  .sheet-bg { display:none; position:fixed; inset:0; z-index:20; background:rgba(0,0,0,.48);
+              -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); align-items:flex-end; justify-content:center }
+  .sheet-bg.on { display:flex; animation:fadeIn .18s ease }
+  @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+  .sheet { background:var(--card); width:100%; max-width:560px; border-radius:26px 26px 0 0;
+           padding:18px 22px calc(26px + env(safe-area-inset-bottom)); box-shadow:0 -8px 40px rgba(0,0,0,.35);
+           max-height:86vh; overflow-y:auto; animation:slideUp .24s cubic-bezier(.2,.8,.2,1) }
+  @media (min-width:640px) { .sheet-bg { align-items:center; padding:20px } .sheet { border-radius:26px } }
+  @keyframes slideUp { from { transform:translateY(40px) } to { transform:none } }
+  .sheet-handle { width:38px; height:5px; border-radius:99px; background:var(--sep); margin:0 auto 14px }
+  .sheet-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:16px }
+  .sheet-top h2 { margin:0; font-size:22px; font-weight:800; letter-spacing:-.02em }
+  .kv-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px }
+  @media (min-width:480px) { .kv-grid { grid-template-columns:repeat(3,1fr) } }
+  .kv { background:var(--card2); border:1px solid var(--border); border-radius:14px; padding:11px 13px }
+  .kv .k { font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--mut); letter-spacing:.04em }
+  .kv .v { font-size:19px; font-weight:800; margin-top:3px; font-variant-numeric:tabular-nums }
+  .field { display:flex; flex-direction:column; gap:5px; margin-bottom:12px }
+  .field label { font-size:12px; font-weight:600; color:var(--mut) }
+  .field input { padding:11px 13px; border-radius:12px; border:1px solid var(--sep); background:var(--card2); color:var(--txt); font:inherit }
+
+  .tab { display:none } .tab.on { display:block; animation:fade .22s ease }
+  @keyframes fade { from { opacity:0; transform:translateY(5px) } to { opacity:1; transform:none } }
+  #login { display:none; position:fixed; inset:0; background:var(--bg); z-index:30; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:24px }
   #login input { width:100%; max-width:320px; padding:14px 16px; font:inherit; color:var(--txt); background:var(--card);
                  border:1px solid var(--sep); border-radius:14px; outline:none }
   #login input:focus { border-color:var(--accent) }
@@ -79,46 +172,180 @@
 </head>
 <body>
 <header>
-  <div><h1>Tri-hard-thlete</h1><div id="status"></div></div>
-  <div class="ctl"><select id="range"><option value="7">7 days</option><option value="28" selected>4 weeks</option><option value="90">12 weeks</option><option value="365">1 year</option></select>
-  <button id="sync">Sync</button><button id="signout">Sign out</button></div>
+  <div class="brand">
+    <div class="title-row">
+      <h1>Tri-hard-thlete</h1>
+      <div id="racePill" title="Tap to set race &amp; weekly target"></div>
+    </div>
+    <div id="status"></div>
+  </div>
+  <div class="ctl">
+    <select id="range">
+      <option value="7">7 days</option>
+      <option value="28" selected>4 weeks</option>
+      <option value="90">12 weeks</option>
+      <option value="365">1 year</option>
+    </select>
+    <button id="sync">Sync</button>
+    <button id="signout">Sign out</button>
+  </div>
 </header>
+
 <div id="login">
   <h1 style="margin-bottom:12px">Tri-hard-thlete</h1>
   <input id="email" type="email" placeholder="Email" autocomplete="username">
   <input id="pw" type="password" placeholder="Password" autocomplete="current-password">
   <button id="signin">Sign in</button><div id="loginErr" class="mut"></div>
 </div>
+
 <nav><div class="seg">
   <button data-t="dash" class="on">Dashboard</button>
   <button data-t="perf">Performance</button>
   <button data-t="rec">Recovery</button>
   <button data-t="log">Log</button>
 </div></nav>
+
 <main>
+  <!-- DASHBOARD -->
   <section id="t-dash" class="tab on">
     <div class="grid" id="totals"></div>
-    <div class="card"><b>Weekly volume (hours)</b><canvas id="volChart" height="150"></canvas></div>
-    <div class="card"><b>Training load (7d vs 28d avg, hrs/week)</b><div id="load" class="big"></div><div class="mut" id="loadHint"></div></div>
+
+    <div class="row2">
+      <div class="card">
+        <div class="card-hd"><b>Discipline Split &amp; Weekly Target</b><span id="splitSub"></span></div>
+        <div class="split-bar" id="splitBar"></div>
+        <div class="split-leg" id="splitLeg"></div>
+        <div class="goal-row">
+          <div>
+            <div class="mut" style="font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em">This Week Volume vs Goal</div>
+            <div id="wkGoalTxt" style="font-size:19px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums"></div>
+          </div>
+          <button id="editGoalsBtn" style="font-size:12px;padding:6px 12px">Edit Target</button>
+        </div>
+        <div class="bar" style="margin-top:8px"><i id="wkGoalBar"></i></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><b>28-Day Consistency</b><span id="streakTxt"></span></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><b>Weekly Volume (Hours)</b><span id="volSub"></span></div>
+      <canvas id="volChart" height="145"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><b>Fitness, Fatigue &amp; Form (PMC)</b><span id="pmcHint"></span></div>
+      <div class="pmc-pills" id="pmcPills"></div>
+      <canvas id="pmcChart" height="150"></canvas>
+    </div>
   </section>
+
+  <!-- PERFORMANCE -->
   <section id="t-perf" class="tab">
-    <div class="card"><b>Run pace (min/km)</b><canvas id="runChart" height="150"></canvas></div>
-    <div class="card"><b>Bike avg speed (km/h)</b><canvas id="bikeChart" height="150"></canvas></div>
-    <div class="card"><b>Swim pace (min/100m)</b><canvas id="swimChart" height="150"></canvas></div>
+    <div class="row2">
+      <div class="card">
+        <div class="card-hd"><b>Heart Rate Zone Distribution</b><span id="polarHint"></span></div>
+        <div id="zoneBars"></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><b>Personal Bests &amp; Key Metrics</b><span>In selected range</span></div>
+        <div class="kv-grid" id="prGrid" style="margin-bottom:0"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><b>Aerobic Efficiency Trend (Speed vs Heart Rate)</b><span>Higher = fitter at same HR</span></div>
+      <canvas id="efChart" height="140"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><b>Run Pace (min/km)</b><span>Lower is faster</span></div>
+      <canvas id="runChart" height="140"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>Bike Average Speed (km/h)</b><span>Higher is faster</span></div>
+      <canvas id="bikeChart" height="140"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>Swim Pace (min/100m)</b><span>Lower is faster</span></div>
+      <canvas id="swimChart" height="140"></canvas>
+    </div>
   </section>
+
+  <!-- RECOVERY -->
   <section id="t-rec" class="tab">
-    <div class="card"><div class="mut">READINESS</div><div class="big" id="ready">–</div><div class="bar lg"><i id="readyBar"></i></div><div class="mut" id="readyHint" style="margin-top:10px"></div></div>
+    <div class="card">
+      <div class="card-hd"><b>Daily Readiness</b><span id="readyDate"></span></div>
+      <div class="big" id="ready">–</div>
+      <div class="bar lg"><i id="readyBar"></i></div>
+      <div class="mut" id="readyHint" style="margin-top:10px"></div>
+    </div>
     <div class="tiles" id="recTiles"></div>
-    <div class="card"><b>HRV (overnight avg, ms) vs 7-day baseline</b><canvas id="hrvChart" height="150"></canvas></div>
-    <div class="card"><b>Resting HR (bpm)</b><canvas id="rhrChart" height="120"></canvas></div>
-    <div class="card"><b>Sleep (hours) &amp; score</b><canvas id="sleepChart" height="150"></canvas></div>
-    <div class="card"><b>Body Battery (high / low)</b><canvas id="bbChart" height="120"></canvas></div>
+    <div class="card"><b>HRV (Overnight Avg, ms) vs 7-Day Baseline</b><canvas id="hrvChart" height="145"></canvas></div>
+    <div class="card"><b>Resting Heart Rate (bpm)</b><canvas id="rhrChart" height="120"></canvas></div>
+    <div class="card"><b>Sleep Duration (Hours) &amp; Score</b><canvas id="sleepChart" height="145"></canvas></div>
+    <div class="card"><b>Body Battery (High / Low)</b><canvas id="bbChart" height="120"></canvas></div>
   </section>
+
+  <!-- LOG -->
   <section id="t-log" class="tab">
-    <div class="card"><table><thead><tr><th>Date</th><th>Sport</th><th>Dist</th><th>Time</th><th>HR</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <div class="filter-bar" id="logFilter">
+      <button data-sp="all" class="on">All Sports</button>
+      <button data-sp="swim">Swim</button>
+      <button data-sp="bike">Bike</button>
+      <button data-sp="run">Run</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Date</th><th>Activity</th><th>Dist</th><th>Time</th><th>Pace / Spd</th><th>HR</th><th>Load</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
   </section>
 </main>
 
+<!-- ACTIVITY DETAIL BOTTOM SHEET -->
+<div class="sheet-bg" id="actSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-top">
+      <div>
+        <div class="mut" id="shDate" style="font-weight:600"></div>
+        <h2 id="shTitle">Activity</h2>
+      </div>
+      <button id="shClose">Done</button>
+    </div>
+    <div class="kv-grid" id="shGrid"></div>
+    <div id="shZones"></div>
+  </div>
+</div>
+
+<!-- RACE & GOAL SETTINGS SHEET -->
+<div class="sheet-bg" id="goalSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-top">
+      <h2>Race &amp; Weekly Targets</h2>
+      <button id="goalClose">Cancel</button>
+    </div>
+    <div class="field">
+      <label>Target Race Name</label>
+      <input id="inRaceName" type="text" placeholder="e.g. Ironman 70.3 Langkawi">
+    </div>
+    <div class="field">
+      <label>Race Date</label>
+      <input id="inRaceDate" type="date">
+    </div>
+    <div class="field">
+      <label>Weekly Volume Target (Hours)</label>
+      <input id="inWkHrs" type="number" step="0.5" min="1" max="40" placeholder="8">
+    </div>
+    <button id="saveGoals" style="width:100%;padding:13px;background:var(--accent);color:#fff;font-size:15px">Save Targets</button>
+  </div>
+</div>
 
 <script>
 // ===== CONFIG: paste from Supabase > Project Settings > API =====
@@ -133,7 +360,14 @@ Chart.defaults.elements.bar.borderRadius = 6;
 Chart.defaults.elements.line.borderWidth = 2.5;
 Chart.defaults.color = C('--mut');
 const $ = s => document.querySelector(s);
-let acts = [], health = [], charts = {};
+let acts = [], health = [], charts = {}, logSportFilter = 'all';
+
+function getGoals() {
+  try {
+    return JSON.parse(localStorage.getItem('tri-goals')) || { raceName: '70.3 Race Day', raceDate: '', wkHrs: 8 };
+  } catch { return { raceName: '70.3 Race Day', raceDate: '', wkHrs: 8 }; }
+}
+function setGoals(g) { localStorage.setItem('tri-goals', JSON.stringify(g)); render(); }
 
 function demoHealth() {
   const out = [];
@@ -151,7 +385,8 @@ function demoData() {
   for (let d = 120; d >= 0; d--) {
     const t = new Date(now - d*864e5); const k = d % 7;
     const mk = (sport, dist, spd) => out.push({summary_id:'d'+d+sport, sport, start_time:t.toISOString(),
-      distance_m:dist, duration_s:dist/spd, avg_hr:130+Math.random()*25|0, avg_speed_mps:spd});
+      distance_m:dist, duration_s:dist/spd, avg_hr:135+Math.random()*22|0, max_hr:168+Math.random()*18|0,
+      calories:dist/spd*0.22|0, elevation_m:sport==='swim'?0:120+Math.random()*300|0, avg_speed_mps:spd, raw:{}});
     if (k===0) mk('swim', 1800+Math.random()*800, 0.95+Math.random()*0.1 + (120-d)*0.0005);
     if (k===2) mk('run', 8000+Math.random()*4000, 3.0+Math.random()*0.3 + (120-d)*0.002);
     if (k===4) mk('bike', 40000+Math.random()*30000, 7.5+Math.random()*1 + (120-d)*0.005);
@@ -181,61 +416,301 @@ async function load() {
   acts = data; localStorage.setItem('tri-cache', JSON.stringify(data));
   const h = await sb.from('daily_health').select('*').gte('calendar_date', since.slice(0,10)).order('calendar_date');
   health = h.data || [];
-  $('#status').textContent = 'Last sync ' + new Date().toLocaleTimeString() + ' · ' + data.length + ' activities';
+  $('#status').textContent = 'Last sync ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' · ' + data.length + ' activities';
   render();
 }
 
-const hms = s => { s = Math.round(s||0); const h=s/3600|0, m=(s%3600)/60|0; return h ? `${h}h${String(m).padStart(2,'0')}` : `${m}m`; };
+const hms = s => { s = Math.round(s||0); const h=s/3600|0, m=(s%3600)/60|0; return h ? `${h}h ${String(m).padStart(2,'0')}m` : `${m}m`; };
+const fmtPace = mMin => { if (!mMin || !isFinite(mMin)) return '–'; const m = Math.floor(mMin), s = Math.round((mMin - m)*60); return `${m}:${String(s===60?59:s).padStart(2,'0')}`; };
 const km = m => (m/1000).toFixed(1);
 function mondayOf(d) { d = new Date(d); d.setHours(0,0,0,0); d.setDate(d.getDate() - (d.getDay()+6)%7); return d; }
 function mkChart(id, cfg) { charts[id]?.destroy(); charts[id] = new Chart($('#'+id), cfg); }
-const axis = {ticks:{color:C('--mut')}, grid:{color:C('--grid')}, border:{display:false}};
+const axis = {ticks:{color:C('--mut'), font:{size:11}}, grid:{color:C('--grid')}, border:{display:false}};
+
+// Activity training load (Garmin native load if available, else HR-based TRIMP estimate)
+function actLoad(a) {
+  const native = a.raw?.activityTrainingLoad;
+  if (native != null && native > 0) return Math.round(native);
+  const mins = (a.duration_s || 0) / 60;
+  if (!mins) return 0;
+  if (a.avg_hr) {
+    const hrRatio = Math.max(0.35, Math.min(1.0, (a.avg_hr - 60) / (190 - 60)));
+    return Math.round(mins * hrRatio * hrRatio * 2.2);
+  }
+  return Math.round(mins * 0.85);
+}
+
+// Format sport-specific speed/pace
+function fmtSportSpeed(a) {
+  if (!a.distance_m || !a.duration_s) return '–';
+  if (a.sport === 'run') return fmtPace((a.duration_s/60) / (a.distance_m/1000)) + ' /km';
+  if (a.sport === 'swim') return fmtPace((a.duration_s/60) / (a.distance_m/100)) + ' /100m';
+  return (a.distance_m / a.duration_s * 3.6).toFixed(1) + ' km/h';
+}
+
+// Detect Brick days (bike + run on same calendar date)
+function brickDatesSet(list) {
+  const byDay = {};
+  list.forEach(a => {
+    const d = a.start_time.slice(0,10);
+    (byDay[d] ??= new Set()).add(a.sport);
+  });
+  const out = new Set();
+  for (const [d, set] of Object.entries(byDay)) if (set.has('bike') && set.has('run')) out.add(d);
+  return out;
+}
+
+function renderRacePill() {
+  const g = getGoals();
+  if (!g.raceDate) {
+    $('#racePill').innerHTML = `<span>Set Race Goal</span>`;
+    return;
+  }
+  const diffDays = Math.ceil((new Date(g.raceDate + 'T00:00:00') - new Date()) / 864e5);
+  if (diffDays < 0) {
+    $('#racePill').innerHTML = `<span>${g.raceName || 'Race'} · Completed</span>`;
+    return;
+  }
+  const wks = Math.floor(diffDays / 7);
+  const phase = wks > 12 ? 'Base' : wks > 5 ? 'Build' : wks >= 2 ? 'Peak' : 'Taper';
+  const countTxt = wks >= 2 ? `${wks}w out` : `${diffDays}d out`;
+  $('#racePill').innerHTML = `<span class="phase">${phase}</span><span>${g.raceName || 'Race'} · ${countTxt}</span>`;
+}
 
 function render() {
+  COLORS.swim = C('--swim'); COLORS.bike = C('--bike'); COLORS.run = C('--run'); COLORS.other = C('--other');
+  renderRacePill();
   const days = +$('#range').value, cutoff = Date.now() - days*864e5;
   const inR = acts.filter(a => new Date(a.start_time) >= cutoff);
+  const bricks = brickDatesSet(acts);
 
-  // totals
+  // 1. Sport summary cards
   const sum = sp => inR.filter(a => a.sport===sp);
   const tot = (list,f) => list.reduce((s,a)=>s+(a[f]||0),0);
-  $('#totals').innerHTML = ['swim','bike','run'].map(sp => {
-    const l = sum(sp);
-    return `<div class="card"><div class="mut"><span class="dot" style="background:${COLORS[sp]}"></span>${sp.toUpperCase()}</div>
-      <div class="big">${km(tot(l,'distance_m'))} km</div><div class="mut">${hms(tot(l,'duration_s'))} · ${l.length} sessions</div></div>`;
-  }).join('') + `<div class="card"><div class="mut">TOTAL TIME</div><div class="big">${hms(tot(inR,'duration_s'))}</div><div class="mut">${inR.length} sessions</div></div>`;
+  const totalTimeS = tot(inR, 'duration_s');
+  const totalLoad = inR.reduce((s,a)=>s+actLoad(a), 0);
 
-  // weekly volume stacked
+  $('#totals').innerHTML = ['swim','bike','run'].map(sp => {
+    const l = sum(sp), dist = tot(l,'distance_m'), dur = tot(l,'duration_s');
+    const avgMeta = sp==='run' && dist ? fmtPace((dur/60)/(dist/1000))+'/km'
+                  : sp==='swim' && dist ? fmtPace((dur/60)/(dist/100))+'/100m'
+                  : sp==='bike' && dur ? (dist/dur*3.6).toFixed(1)+' km/h' : '';
+    return `<div class="card sport-card">
+      <div class="sport-top">
+        <div class="sport-tag"><span class="dot" style="background:${COLORS[sp]};margin:0"></span>${sp}</div>
+        <div class="mut">${l.length} ${l.length===1?'session':'sessions'}</div>
+      </div>
+      <div class="big">${km(dist)}<small>km</small></div>
+      <div class="mut">${hms(dur)}${avgMeta ? ' · avg '+avgMeta : ''}</div>
+    </div>`;
+  }).join('') + `<div class="card sport-card">
+      <div class="sport-top">
+        <div class="sport-tag">Total Volume</div>
+        <div class="mut">${inR.length} sessions</div>
+      </div>
+      <div class="big">${hms(totalTimeS)}</div>
+      <div class="mut">Load ${totalLoad} · ${km(tot(inR,'distance_m'))} km</div>
+    </div>`;
+
+  // 2. Discipline split & weekly target
+  const spDur = { swim: tot(sum('swim'),'duration_s'), bike: tot(sum('bike'),'duration_s'), run: tot(sum('run'),'duration_s') };
+  const triDur = (spDur.swim + spDur.bike + spDur.run) || 1;
+  const pct = sp => Math.round(spDur[sp] / triDur * 100);
+  $('#splitSub').textContent = (spDur.swim + spDur.bike + spDur.run) ? 'By training time' : 'No sessions yet';
+  $('#splitBar').innerHTML = ['swim','bike','run'].map(sp =>
+    `<i style="width:${(spDur.swim+spDur.bike+spDur.run)?pct(sp):33}%;background:${COLORS[sp]}"></i>`
+  ).join('');
+  $('#splitLeg').innerHTML = ['swim','bike','run'].map(sp =>
+    `<span><span class="dot" style="background:${COLORS[sp]}"></span>${sp.toUpperCase()} ${(spDur.swim+spDur.bike+spDur.run)?pct(sp):0}% (${hms(spDur[sp])})</span>`
+  ).join('');
+
+  const g = getGoals();
+  const mon = mondayOf(new Date());
+  const thisWkHrs = acts.filter(a => new Date(a.start_time) >= mon).reduce((s,a)=>s+(a.duration_s||0)/3600, 0);
+  const goalHrs = +g.wkHrs || 8;
+  const goalPct = Math.min(100, Math.round(thisWkHrs / goalHrs * 100));
+  $('#wkGoalTxt').textContent = `${thisWkHrs.toFixed(1)} / ${goalHrs} hrs (${goalPct}%)`;
+  $('#wkGoalBar').style.width = goalPct + '%';
+  $('#wkGoalBar').style.background = goalPct >= 100 ? C('--green') : C('--accent');
+
+  // 3. 28-Day consistency calendar
+  renderCalendar(bricks);
+
+  // 4. Weekly volume stacked bar
   const weeks = {};
   acts.forEach(a => { const k = mondayOf(a.start_time).toISOString().slice(0,10);
     (weeks[k] ??= {swim:0,bike:0,run:0,other:0})[a.sport] += (a.duration_s||0)/3600; });
   const wk = Object.keys(weeks).sort().slice(-Math.max(4, Math.ceil(days/7)));
+  const avgWk = wk.length ? (wk.reduce((s,w)=>s+weeks[w].swim+weeks[w].bike+weeks[w].run,0)/wk.length).toFixed(1) : '0.0';
+  $('#volSub').textContent = `Avg ${avgWk} hrs / week`;
   mkChart('volChart', {type:'bar', data:{labels:wk.map(w=>w.slice(5)),
     datasets:['swim','bike','run'].map(sp=>({label:sp, backgroundColor:COLORS[sp], data:wk.map(w=>+weeks[w][sp].toFixed(2))}))},
     options:{scales:{x:{...axis,stacked:true},y:{...axis,stacked:true}},plugins:{legend:{labels:{color:C('--txt')}}}}});
 
-  // load ratio
-  const hrs = d => acts.filter(a => new Date(a.start_time) >= Date.now()-d*864e5).reduce((s,a)=>s+(a.duration_s||0)/3600,0);
-  const acute = hrs(7), chronic = hrs(28)/4, r = chronic ? acute/chronic : 0;
-  $('#load').textContent = `${acute.toFixed(1)} / ${chronic.toFixed(1)} h  (ratio ${r.toFixed(2)})`;
-  $('#loadHint').textContent = r>1.5 ? 'Load spike — injury risk' : r>1.1 ? 'Building' : r>0.8 ? 'Maintaining' : 'Detraining / taper';
+  // 5. Fitness / Fatigue / Form (PMC)
+  renderPMC(days);
 
-  // performance trends
-  const trend = (id, sp, fn, label, color) => {
-    const l = acts.filter(a => a.sport===sp && a.distance_m>500 && a.duration_s);
-    mkChart(id, {type:'line', data:{labels:l.map(a=>a.start_time.slice(5,10)),
-      datasets:[{label, data:l.map(fn), borderColor:color, tension:.3, pointRadius:2}]},
-      options:{scales:{x:axis,y:axis},plugins:{legend:{display:false}}}});
-  };
-  trend('runChart','run',a=>+(a.duration_s/60/(a.distance_m/1000)).toFixed(2),'min/km',COLORS.run);
-  trend('bikeChart','bike',a=>+(a.distance_m/a.duration_s*3.6).toFixed(1),'km/h',COLORS.bike);
-  trend('swimChart','swim',a=>+(a.duration_s/60/(a.distance_m/100)).toFixed(2),'min/100m',COLORS.swim);
+  // 6. Performance tab (Zones, PRs, Aerobic Efficiency, Pace/Speed charts)
+  renderPerformance(inR);
 
+  // 7. Recovery tab
   renderRecovery(days);
 
-  // log
-  $('#rows').innerHTML = [...inR].reverse().map(a => `<tr><td>${a.start_time.slice(5,10)}</td>
-    <td><span class="dot" style="background:${COLORS[a.sport]}"></span>${a.sport}</td>
-    <td>${km(a.distance_m||0)} km</td><td>${hms(a.duration_s)}</td><td>${a.avg_hr??'–'}</td></tr>`).join('');
+  // 8. Log tab
+  renderLog(inR, bricks);
+}
+
+function renderCalendar(bricks) {
+  const dows = ['M','T','W','T','F','S','S'];
+  const today = new Date(); today.setHours(0,0,0,0);
+  const startMon = mondayOf(new Date(today.getTime() - 21*864e5)); // 4 weeks starting Monday
+  const byDay = {};
+  acts.forEach(a => {
+    const d = a.start_time.slice(0,10);
+    (byDay[d] ??= []).push(a);
+  });
+
+  let activeDays = 0;
+  let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < 28; i++) {
+    const dt = new Date(startMon.getTime() + i*864e5);
+    const iso = new Date(dt.getTime() - dt.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    const list = byDay[iso] || [];
+    if (list.length) activeDays++;
+    const isToday = dt.getTime() === today.getTime();
+    const dots = list.map(a => `<i style="background:${COLORS[a.sport]||COLORS.other}"></i>`).join('');
+    const brk = bricks.has(iso) ? `<div class="brick-tag">Brick</div>` : '';
+    html += `<div class="cal-day${isToday?' today':''}">
+      <div class="cal-num">${dt.getDate()}</div>
+      <div class="cal-dots">${dots}</div>
+      ${brk}
+    </div>`;
+  }
+  $('#calGrid').innerHTML = html;
+  const brkCnt = [...bricks].filter(d => d >= new Date(startMon.getTime() - startMon.getTimezoneOffset()*60000).toISOString().slice(0,10)).length;
+  $('#streakTxt').textContent = `${activeDays}/28 active days${brkCnt ? ` · ${brkCnt} brick` : ''}`;
+}
+
+function renderPMC(days) {
+  // Compute daily load over the last 120 days, then EWMA for CTL (42d) and ATL (7d)
+  const span = Math.max(days, 60);
+  const dailyLoad = {};
+  acts.forEach(a => {
+    const d = a.start_time.slice(0,10);
+    dailyLoad[d] = (dailyLoad[d] || 0) + actLoad(a);
+  });
+
+  const dates = [], ctlArr = [], atlArr = [], tsbArr = [];
+  let ctl = 0, atl = 0;
+  const totalDays = 120;
+  for (let i = totalDays; i >= 0; i--) {
+    const dt = new Date(Date.now() - i*864e5).toISOString().slice(0,10);
+    const tss = dailyLoad[dt] || 0;
+    tsbArr.push(+(ctl - atl).toFixed(1));
+    ctl = ctl + (tss - ctl) / 42;
+    atl = atl + (tss - atl) / 7;
+    dates.push(dt);
+    ctlArr.push(+ctl.toFixed(1));
+    atlArr.push(+atl.toFixed(1));
+  }
+
+  const curCTL = ctlArr[ctlArr.length-1] || 0;
+  const curATL = atlArr[atlArr.length-1] || 0;
+  const curTSB = +(curCTL - curATL).toFixed(1);
+  const formState = curTSB > 10 ? 'Fresh / Race Ready' : curTSB >= -10 ? 'Optimal Training' : curTSB >= -25 ? 'Productive Fatigue' : 'High Overload — Rest Soon';
+  $('#pmcHint').textContent = formState;
+
+  $('#pmcPills').innerHTML = `
+    <div class="pmc-pill"><div class="lbl">Fitness (CTL)</div><div class="val" style="color:${C('--accent')}">${curCTL.toFixed(0)}</div></div>
+    <div class="pmc-pill"><div class="lbl">Fatigue (ATL)</div><div class="val" style="color:${COLORS.run}">${curATL.toFixed(0)}</div></div>
+    <div class="pmc-pill"><div class="lbl">Form (TSB)</div><div class="val" style="color:${curTSB>=0?C('--green'):COLORS.bike}">${curTSB>0?'+'+curTSB:curTSB}</div></div>
+  `;
+
+  const sliceN = Math.min(dates.length, Math.max(14, days));
+  mkChart('pmcChart', {
+    type:'line',
+    data:{
+      labels: dates.slice(-sliceN).map(d=>d.slice(5)),
+      datasets:[
+        {label:'Fitness (CTL)', data:ctlArr.slice(-sliceN), borderColor:C('--accent'), tension:.35, pointRadius:0},
+        {label:'Fatigue (ATL)', data:atlArr.slice(-sliceN), borderColor:COLORS.run, tension:.35, pointRadius:0},
+        {label:'Form (TSB)', data:tsbArr.slice(-sliceN), borderColor:C('--green'), borderDash:[4,4], tension:.35, pointRadius:0}
+      ]
+    },
+    options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}
+  });
+}
+
+function renderPerformance(inR) {
+  // 1. Heart Rate Zones (from raw.hrTimeInZone_1..5 if present, else classified by session avg_hr)
+  const zSec = [0, 0, 0, 0, 0];
+  inR.forEach(a => {
+    const r = a.raw || {};
+    const hasNative = [1,2,3,4,5].some(i => r['hrTimeInZone_'+i] != null);
+    if (hasNative) {
+      [1,2,3,4,5].forEach(i => { zSec[i-1] += (r['hrTimeInZone_'+i] || 0); });
+    } else if (a.avg_hr && a.duration_s) {
+      const hr = a.avg_hr;
+      const idx = hr < 125 ? 0 : hr < 145 ? 1 : hr < 162 ? 2 : hr < 176 ? 3 : 4;
+      zSec[idx] += a.duration_s;
+    }
+  });
+  const totZ = zSec.reduce((x,y)=>x+y, 0) || 1;
+  const zNames = ['Z1 Easy', 'Z2 Base', 'Z3 Tempo', 'Z4 Thresh', 'Z5 VO2'];
+  const zCols = ['#5AC8FA', '#34C759', '#FFCC00', '#FF9500', '#FF2D55'];
+  const easyPct = Math.round((zSec[0] + zSec[1]) / totZ * 100);
+  $('#polarHint').textContent = zSec.some(v=>v>0) ? `${easyPct}% Easy (Z1–Z2) · ${100-easyPct}% Mod/Hard` : 'Sync HR sessions to populate';
+  $('#zoneBars').innerHTML = zNames.map((nm, i) => {
+    const p = zSec.some(v=>v>0) ? Math.round(zSec[i] / totZ * 100) : 0;
+    return `<div class="z-row">
+      <div class="z-lbl">${nm}</div>
+      <div class="z-track"><i style="width:${p}%;background:${zCols[i]}"></i></div>
+      <div style="text-align:right;font-weight:700">${p}%</div>
+    </div>`;
+  }).join('');
+
+  // 2. Personal Bests & Key Metrics in range
+  const runs = inR.filter(a=>a.sport==='run' && a.distance_m>500 && a.duration_s);
+  const bikes = inR.filter(a=>a.sport==='bike' && a.distance_m>1000 && a.duration_s);
+  const swims = inR.filter(a=>a.sport==='swim' && a.distance_m>100 && a.duration_s);
+  const bestRunPace = runs.length ? Math.min(...runs.map(a=>(a.duration_s/60)/(a.distance_m/1000))) : null;
+  const bestBikeSpd = bikes.length ? Math.max(...bikes.map(a=>a.distance_m/a.duration_s*3.6)) : null;
+  const bestSwimPace = swims.length ? Math.min(...swims.map(a=>(a.duration_s/60)/(a.distance_m/100))) : null;
+  const maxDist = sp => { const l = inR.filter(a=>a.sport===sp); return l.length ? km(Math.max(...l.map(a=>a.distance_m||0)))+' km' : '–'; };
+
+  $('#prGrid').innerHTML = `
+    <div class="kv"><div class="k">Fastest Run Avg</div><div class="v">${bestRunPace ? fmtPace(bestRunPace)+'/km' : '–'}</div></div>
+    <div class="kv"><div class="k">Fastest Bike Avg</div><div class="v">${bestBikeSpd ? bestBikeSpd.toFixed(1)+' km/h' : '–'}</div></div>
+    <div class="kv"><div class="k">Fastest Swim Avg</div><div class="v">${bestSwimPace ? fmtPace(bestSwimPace)+'/100m' : '–'}</div></div>
+    <div class="kv"><div class="k">Longest Run</div><div class="v">${maxDist('run')}</div></div>
+    <div class="kv"><div class="k">Longest Ride</div><div class="v">${maxDist('bike')}</div></div>
+    <div class="kv"><div class="k">Longest Swim</div><div class="v">${maxDist('swim')}</div></div>
+  `;
+
+  // 3. Aerobic Efficiency Factor (Speed in m/min divided by Avg HR)
+  const efActs = acts.filter(a => (a.sport==='run' || a.sport==='bike') && a.distance_m>1000 && a.duration_s && a.avg_hr);
+  mkChart('efChart', {
+    type:'line',
+    data:{
+      labels: efActs.map(a=>a.start_time.slice(5,10)),
+      datasets:[
+        {label:'Run EF (m/min per bpm)', data:efActs.map(a=>a.sport==='run' ? +((a.distance_m/(a.duration_s/60))/a.avg_hr).toFixed(2) : null), borderColor:COLORS.run, spanGaps:true, tension:.3, pointRadius:3},
+        {label:'Bike EF (scaled)', data:efActs.map(a=>a.sport==='bike' ? +((a.distance_m/(a.duration_s/60))/a.avg_hr/2.5).toFixed(2) : null), borderColor:COLORS.bike, spanGaps:true, tension:.3, pointRadius:3}
+      ]
+    },
+    options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}
+  });
+
+  // 4. Individual sport pace/speed trend charts
+  const trend = (id, sp, fn, label, color, rev=false) => {
+    const l = acts.filter(a => a.sport===sp && a.distance_m>200 && a.duration_s);
+    mkChart(id, {type:'line', data:{labels:l.map(a=>a.start_time.slice(5,10)),
+      datasets:[{label, data:l.map(fn), borderColor:color, tension:.3, pointRadius:3}]},
+      options:{scales:{x:axis,y:{...axis, reverse:rev}},plugins:{legend:{display:false}}}});
+  };
+  trend('runChart','run',a=>+(a.duration_s/60/(a.distance_m/1000)).toFixed(2),'min/km',COLORS.run, true);
+  trend('bikeChart','bike',a=>+(a.distance_m/a.duration_s*3.6).toFixed(1),'km/h',COLORS.bike, false);
+  trend('swimChart','swim',a=>+(a.duration_s/60/(a.distance_m/100)).toFixed(2),'min/100m',COLORS.swim, true);
 }
 
 function renderRecovery(days) {
@@ -243,14 +718,13 @@ function renderRecovery(days) {
   const all = health, hs = all.filter(h => h.calendar_date >= cutoff);
   const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
   const vals = (arr,k) => arr.map(h=>h[k]).filter(v=>v!=null);
-  // 7-day rolling baseline for HRV
   const base = all.map((h,i) => avg(vals(all.slice(Math.max(0,i-6),i+1),'hrv_night_avg')));
   const idx = new Map(all.map((h,i)=>[h.calendar_date,i]));
   const labels = hs.map(h=>h.calendar_date.slice(5));
 
-  // readiness: last HRV vs 28d baseline, resting HR vs baseline, sleep score, body battery
   const last = all[all.length-1];
   if (last) {
+    $('#readyDate').textContent = last.calendar_date;
     const b28 = avg(vals(all.slice(-29,-1),'hrv_night_avg')), r28 = avg(vals(all.slice(-29,-1),'resting_hr'));
     let score = 50, n = 0;
     if (last.hrv_night_avg && b28) { score += Math.max(-25, Math.min(25, (last.hrv_night_avg/b28-1)*100)); n++; }
@@ -259,11 +733,10 @@ function renderRecovery(days) {
     if (last.body_battery_high) { score += (last.body_battery_high-70)/4; n++; }
     score = Math.round(Math.max(0, Math.min(100, score)));
     $('#ready').textContent = n ? score + ' / 100' : '–';
-    $('#readyHint').textContent = !n ? 'No health data yet' : score>=75 ? 'Good to go — hard session OK' : score>=50 ? 'Moderate — keep intensity controlled' : 'Low — easy day or rest';
+    $('#readyHint').textContent = !n ? 'No health data yet' : score>=75 ? 'Prime readiness — high-intensity or key brick session OK' : score>=50 ? 'Moderate readiness — keep effort controlled in Zone 2' : 'Low readiness — prioritize active recovery or rest';
     $('#readyBar').style.width = (n ? score : 0) + '%';
     $('#readyBar').style.background = score >= 75 ? C('--green') : score >= 50 ? C('--bike') : C('--run');
     const prev = k => avg(vals(all.slice(-29, -1), k));
-    // dir: 1 = higher is better, -1 = lower is better, 0 = neutral
     const tile = (label, v, unit, k, dir, pct, color) => {
       const has = v != null && v !== '';
       let delta = '', cls = '';
@@ -300,10 +773,93 @@ function renderRecovery(days) {
     options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}});
 }
 
+function renderLog(inR, bricks) {
+  const list = [...inR].filter(a => logSportFilter === 'all' || a.sport === logSportFilter).reverse();
+  $('#rows').innerHTML = list.map(a => {
+    const d = a.start_time.slice(0,10);
+    const name = a.raw?.activityName || a.sport.toUpperCase();
+    const brk = bricks.has(d) && (a.sport==='bike'||a.sport==='run') ? `<span class="badge">Brick</span>` : '';
+    return `<tr data-id="${a.summary_id}">
+      <td>${d.slice(5)}</td>
+      <td><span class="dot" style="background:${COLORS[a.sport]}"></span><b>${name}</b>${brk}</td>
+      <td>${km(a.distance_m||0)} km</td>
+      <td>${hms(a.duration_s)}</td>
+      <td>${fmtSportSpeed(a)}</td>
+      <td>${a.avg_hr??'–'}</td>
+      <td>${actLoad(a)}</td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#rows tr').forEach(tr => {
+    tr.onclick = () => openActivitySheet(tr.dataset.id);
+  });
+}
+
+function openActivitySheet(id) {
+  const a = acts.find(x => String(x.summary_id) === String(id));
+  if (!a) return;
+  const r = a.raw || {};
+  $('#shDate').textContent = new Date(a.start_time).toLocaleString([], {weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+  $('#shTitle').innerHTML = `<span class="dot" style="background:${COLORS[a.sport]};width:11px;height:11px"></span>${r.activityName || a.sport.toUpperCase()}`;
+
+  const ef = (a.distance_m && a.duration_s && a.avg_hr) ? ((a.distance_m/(a.duration_s/60))/a.avg_hr).toFixed(2) : '–';
+  const cad = r.avgRunCadence ? Math.round(r.avgRunCadence)+' spm'
+            : r.avgBikeCadence ? Math.round(r.avgBikeCadence)+' rpm'
+            : r.avgSwimCadence ? Math.round(r.avgSwimCadence)+' spm' : null;
+  const te = r.aerobicTrainingEffect ? `${ (+r.aerobicTrainingEffect).toFixed(1) } Ae / ${ (+(r.anaerobicTrainingEffect||0)).toFixed(1) } An` : null;
+
+  const items = [
+    ['Distance', km(a.distance_m||0) + ' km'],
+    ['Duration', hms(a.duration_s)],
+    ['Avg Pace / Speed', fmtSportSpeed(a)],
+    ['Avg / Max HR', `${a.avg_hr ?? '–'} / ${a.max_hr ?? '–'} bpm`],
+    ['Training Load', actLoad(a)],
+    ['Aerobic Efficiency', ef],
+    ['Elevation Gain', a.elevation_m != null ? Math.round(a.elevation_m)+' m' : '–'],
+    ['Active Calories', a.calories != null ? a.calories+' kcal' : '–'],
+    ['Avg Power', a.avg_power_w != null ? a.avg_power_w+' W' : (cad || '–')],
+  ];
+  if (te) items.push(['Training Effect', te]);
+  if (r.avgSwolf) items.push(['Avg SWOLF', Math.round(r.avgSwolf)]);
+
+  $('#shGrid').innerHTML = items.map(([k,v]) => `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  $('#actSheet').classList.add('on');
+}
+
+$('#shClose').onclick = () => $('#actSheet').classList.remove('on');
+$('#actSheet').onclick = (e) => { if (e.target.id === 'actSheet') $('#actSheet').classList.remove('on'); };
+
+// Goal modal handlers
+function openGoalSheet() {
+  const g = getGoals();
+  $('#inRaceName').value = g.raceName || '';
+  $('#inRaceDate').value = g.raceDate || '';
+  $('#inWkHrs').value = g.wkHrs || 8;
+  $('#goalSheet').classList.add('on');
+}
+$('#racePill').onclick = openGoalSheet;
+$('#editGoalsBtn').onclick = openGoalSheet;
+$('#goalClose').onclick = () => $('#goalSheet').classList.remove('on');
+$('#goalSheet').onclick = (e) => { if (e.target.id === 'goalSheet') $('#goalSheet').classList.remove('on'); };
+$('#saveGoals').onclick = () => {
+  setGoals({
+    raceName: $('#inRaceName').value.trim() || 'Race Day',
+    raceDate: $('#inRaceDate').value,
+    wkHrs: parseFloat($('#inWkHrs').value) || 8
+  });
+  $('#goalSheet').classList.remove('on');
+};
+
+// Navigation & sport filters
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button,.tab').forEach(e => e.classList.remove('on'));
   b.classList.add('on'); $('#t-'+b.dataset.t).classList.add('on');
 });
+document.querySelectorAll('#logFilter button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#logFilter button').forEach(e => e.classList.remove('on'));
+  b.classList.add('on'); logSportFilter = b.dataset.sp; render();
+});
+
 // Sync = ask the cloud to pull fresh data from Garmin, wait for it to finish, then reload.
 let syncing = false;
 async function syncNow() {
