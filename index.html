@@ -360,14 +360,20 @@ Chart.defaults.elements.bar.borderRadius = 6;
 Chart.defaults.elements.line.borderWidth = 2.5;
 Chart.defaults.color = C('--mut');
 const $ = s => document.querySelector(s);
-let acts = [], health = [], charts = {}, logSportFilter = 'all';
+let acts = [], health = [], charts = {}, logSportFilter = 'all', cloudGoals = null;
 
 function getGoals() {
+  if (cloudGoals) return cloudGoals;
   try {
     return JSON.parse(localStorage.getItem('tri-goals')) || { raceName: '70.3 Race Day', raceDate: '', wkHrs: 8 };
   } catch { return { raceName: '70.3 Race Day', raceDate: '', wkHrs: 8 }; }
 }
-function setGoals(g) { localStorage.setItem('tri-goals', JSON.stringify(g)); render(); }
+async function setGoals(g) {
+  cloudGoals = g;
+  localStorage.setItem('tri-goals', JSON.stringify(g));
+  render();
+  if (sb) await sb.auth.updateUser({ data: { tri_goals: g } });
+}
 
 function demoHealth() {
   const out = [];
@@ -409,6 +415,17 @@ async function load() {
   const { data: { session } } = await sb.auth.getSession();
   $('#login').style.display = session ? 'none' : 'flex';
   if (!session) return;
+  const { data: uData } = await sb.auth.getUser();
+  const remoteGoals = uData?.user?.user_metadata?.tri_goals || session.user?.user_metadata?.tri_goals;
+  if (remoteGoals) {
+    cloudGoals = remoteGoals;
+    localStorage.setItem('tri-goals', JSON.stringify(remoteGoals));
+  } else {
+    const local = localStorage.getItem('tri-goals');
+    if (local) {
+      try { cloudGoals = JSON.parse(local); await sb.auth.updateUser({ data: { tri_goals: cloudGoals } }); } catch {}
+    }
+  }
   $('#status').textContent = 'Syncing…';
   const since = new Date(Date.now() - 400*864e5).toISOString();
   const { data, error } = await sb.from('activities').select('*').gte('start_time', since).order('start_time');
