@@ -27,7 +27,8 @@ start = today - dt.timedelta(days=days)
 
 def post(payload):
     req = urllib.request.Request(WEBHOOK, json.dumps(payload).encode(),
-                                 {"Content-Type": "application/json"})
+                                 {"Content-Type": "application/json",
+                                  "x-webhook-secret": os.environ.get("WEBHOOK_SECRET", "")})
     try:
         return urllib.request.urlopen(req, timeout=60).read().decode()
     except urllib.error.HTTPError as e:

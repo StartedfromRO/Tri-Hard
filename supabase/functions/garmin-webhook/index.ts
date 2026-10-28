@@ -19,6 +19,11 @@ function sport(t = ""): string {
 }
 
 Deno.serve(async (req) => {
+  // Shared-secret check: only callers that know WEBHOOK_SECRET may write. Fails closed if unset.
+  const expected = Deno.env.get("WEBHOOK_SECRET");
+  if (!expected || req.headers.get("x-webhook-secret") !== expected) {
+    return new Response("unauthorized", { status: 401 });
+  }
   if (req.method !== "POST") return new Response("ok");
   const body = await req.json().catch(() => ({}));
   const list = [...(body.activities ?? []), ...(body.activityDetails?.map((d: any) => ({ ...d.summary, summaryId: d.summaryId })) ?? [])];

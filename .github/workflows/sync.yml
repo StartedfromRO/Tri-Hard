@@ -28,4 +28,6 @@ jobs:
           printf '%s' "$GARMIN_TOKENS" > ~/.garminconnect/garmin_tokens.json
           chmod 600 ~/.garminconnect/garmin_tokens.json
       - name: Pull last 2 days
+        env:
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
         run: python sync_garmin.py 2
