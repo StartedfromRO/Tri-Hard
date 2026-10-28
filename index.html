@@ -1133,7 +1133,7 @@ $('#saveGoals').onclick = () => {
 // Navigation & sport filters
 document.querySelectorAll('#predTabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#predTabs button').forEach(e => e.classList.remove('on'));
-  b.classList.add('on'); predDist = b.dataset.dist; render();
+  b.classList.add('on'); predDist = b.dataset.d; render();
 });
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button,.tab').forEach(e => e.classList.remove('on'));
