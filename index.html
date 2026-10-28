@@ -358,6 +358,11 @@ const COLORS = {swim:C('--swim'), bike:C('--bike'), run:C('--run'), other:C('--o
 Chart.defaults.font.family = '-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif';
 Chart.defaults.elements.bar.borderRadius = 6;
 Chart.defaults.elements.line.borderWidth = 2.5;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+Chart.defaults.plugins.legend.labels.boxWidth = 7;
+Chart.defaults.plugins.legend.labels.boxHeight = 7;
+Chart.defaults.plugins.legend.labels.padding = 16;
 Chart.defaults.color = C('--mut');
 const $ = s => document.querySelector(s);
 let acts = [], health = [], charts = {}, logSportFilter = 'all', cloudGoals = null;
@@ -649,9 +654,9 @@ function renderPMC(days) {
     data:{
       labels: dates.slice(-sliceN).map(d=>d.slice(5)),
       datasets:[
-        {label:'Fitness (CTL)', data:ctlArr.slice(-sliceN), borderColor:C('--accent'), tension:.35, pointRadius:0},
-        {label:'Fatigue (ATL)', data:atlArr.slice(-sliceN), borderColor:COLORS.run, tension:.35, pointRadius:0},
-        {label:'Form (TSB)', data:tsbArr.slice(-sliceN), borderColor:C('--green'), borderDash:[4,4], tension:.35, pointRadius:0}
+        {label:'Fitness (CTL)', data:ctlArr.slice(-sliceN), borderColor:C('--accent'), backgroundColor:C('--accent'), tension:.35, pointRadius:0},
+        {label:'Fatigue (ATL)', data:atlArr.slice(-sliceN), borderColor:COLORS.run, backgroundColor:COLORS.run, tension:.35, pointRadius:0},
+        {label:'Form (TSB)', data:tsbArr.slice(-sliceN), borderColor:C('--green'), backgroundColor:C('--green'), borderDash:[4,4], tension:.35, pointRadius:0}
       ]
     },
     options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}
@@ -711,8 +716,8 @@ function renderPerformance(inR) {
     data:{
       labels: efActs.map(a=>a.start_time.slice(5,10)),
       datasets:[
-        {label:'Run EF (m/min per bpm)', data:efActs.map(a=>a.sport==='run' ? +((a.distance_m/(a.duration_s/60))/a.avg_hr).toFixed(2) : null), borderColor:COLORS.run, spanGaps:true, tension:.3, pointRadius:3},
-        {label:'Bike EF (scaled)', data:efActs.map(a=>a.sport==='bike' ? +((a.distance_m/(a.duration_s/60))/a.avg_hr/2.5).toFixed(2) : null), borderColor:COLORS.bike, spanGaps:true, tension:.3, pointRadius:3}
+        {label:'Run EF (m/min per bpm)', data:efActs.map(a=>a.sport==='run' ? +((a.distance_m/(a.duration_s/60))/a.avg_hr).toFixed(2) : null), borderColor:COLORS.run, backgroundColor:COLORS.run, spanGaps:true, tension:.3, pointRadius:3},
+        {label:'Bike EF (scaled)', data:efActs.map(a=>a.sport==='bike' ? +((a.distance_m/(a.duration_s/60))/a.avg_hr/2.5).toFixed(2) : null), borderColor:COLORS.bike, backgroundColor:COLORS.bike, spanGaps:true, tension:.3, pointRadius:3}
       ]
     },
     options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}
@@ -775,18 +780,18 @@ function renderRecovery(days) {
   }
 
   mkChart('hrvChart', {type:'line', data:{labels, datasets:[
-    {label:'HRV', data:hs.map(h=>h.hrv_night_avg), borderColor:C('--green'), tension:.3, pointRadius:2},
-    {label:'7d baseline', data:hs.map(h=>{const v=base[idx.get(h.calendar_date)]; return v&&+v.toFixed(1)}), borderColor:C('--mut'), borderDash:[5,5], pointRadius:0}]},
+    {label:'HRV', data:hs.map(h=>h.hrv_night_avg), borderColor:C('--green'), backgroundColor:C('--green'), tension:.3, pointRadius:2},
+    {label:'7d baseline', data:hs.map(h=>{const v=base[idx.get(h.calendar_date)]; return v&&+v.toFixed(1)}), borderColor:C('--mut'), backgroundColor:C('--mut'), borderDash:[5,5], pointRadius:0}]},
     options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}});
-  mkChart('rhrChart', {type:'line', data:{labels, datasets:[{data:hs.map(h=>h.resting_hr), borderColor:COLORS.run, tension:.3, pointRadius:2}]},
+  mkChart('rhrChart', {type:'line', data:{labels, datasets:[{data:hs.map(h=>h.resting_hr), borderColor:COLORS.run, backgroundColor:COLORS.run, tension:.3, pointRadius:2}]},
     options:{scales:{x:axis,y:axis},plugins:{legend:{display:false}}}});
   mkChart('sleepChart', {data:{labels, datasets:[
     {type:'bar', label:'hours', data:hs.map(h=>h.sleep_s&&+(h.sleep_s/3600).toFixed(1)), backgroundColor:C('--indigo'), yAxisID:'y'},
-    {type:'line', label:'score', data:hs.map(h=>h.sleep_score), borderColor:COLORS.bike, pointRadius:2, yAxisID:'y2'}]},
+    {type:'line', label:'score', data:hs.map(h=>h.sleep_score), borderColor:COLORS.bike, backgroundColor:COLORS.bike, pointRadius:2, yAxisID:'y2'}]},
     options:{scales:{x:axis,y:axis,y2:{...axis,position:'right',grid:{display:false}}},plugins:{legend:{labels:{color:C('--txt')}}}}});
   mkChart('bbChart', {type:'line', data:{labels, datasets:[
-    {label:'high', data:hs.map(h=>h.body_battery_high), borderColor:COLORS.swim, pointRadius:1},
-    {label:'low', data:hs.map(h=>h.body_battery_low), borderColor:COLORS.other, pointRadius:1}]},
+    {label:'high', data:hs.map(h=>h.body_battery_high), borderColor:COLORS.swim, backgroundColor:COLORS.swim, pointRadius:1},
+    {label:'low', data:hs.map(h=>h.body_battery_low), borderColor:COLORS.other, backgroundColor:COLORS.other, pointRadius:1}]},
     options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}});
 }
 
