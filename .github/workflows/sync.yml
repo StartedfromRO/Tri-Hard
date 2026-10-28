@@ -1,9 +1,7 @@
 name: Sync Garmin
 
 on:
-  schedule:
-    - cron: "*/30 * * * *"   # every 30 min (GitHub may delay by a few minutes)
-  workflow_dispatch:           # also lets you run it by hand from the Actions tab
+  workflow_dispatch:           # runs only when triggered: the app's Sync button, or manually from the Actions tab
 
 concurrency:
   group: garmin-sync
