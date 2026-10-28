@@ -151,10 +151,32 @@
   .brick-tag { font-size:8px; font-weight:800; color:var(--bike); letter-spacing:.03em; text-transform:uppercase }
 
   /* PMC summary pills */
-  .pmc-pills { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px }
+  .pmc-pills { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px }
+  @media (min-width:640px) { .pmc-pills { grid-template-columns:repeat(5,1fr) } }
   .pmc-pill { background:var(--card2); border-radius:16px; padding:10px 12px; border:1px solid var(--border); box-shadow:var(--spec) }
   .pmc-pill .lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--mut) }
-  .pmc-pill .val { font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:2px }
+  .pmc-pill .val { font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:2px }
+  .pmc-pill .sub { font-size:10.5px; font-weight:600; color:var(--mut); margin-top:2px }
+
+  /* 12-Week Heatmap */
+  .hm-sep { margin-top:12px; padding-top:10px; border-top:1px solid var(--sep) }
+  .hm-hd { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--mut); font-weight:600; margin-bottom:6px }
+  .hm-grid { display:grid; grid-template-columns:repeat(12,1fr); gap:4px }
+  .hm-col { display:flex; flex-direction:column; gap:4px }
+  .hm-cell { height:10px; border-radius:3px; background:var(--fill); border:1px solid rgba(255,255,255,.06) }
+  .hm-cell.today { outline:1.5px solid var(--accent); outline-offset:1px }
+
+  /* Fueling planner strip */
+  .fuel-box { margin-top:12px; padding:12px 14px; border-radius:18px; background:var(--card2); border:1px solid var(--border); box-shadow:var(--spec) }
+  .fuel-hd { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center }
+  .fuel-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px }
+  .fuel-item b { display:block; font-size:15px; font-weight:800; font-variant-numeric:tabular-nums }
+  .fuel-item span { font-size:11px; color:var(--mut); font-weight:600 }
+
+  /* Log search input */
+  .log-search { flex:1; min-width:150px; padding:6px 14px; border-radius:99px; border:1px solid var(--border); background:var(--card); color:var(--txt); font:inherit; font-size:12.5px; outline:none; box-shadow:var(--spec) }
+  .log-search:focus { border-color:var(--accent) }
+  .brand-logo { width:30px; height:30px; border-radius:9px; box-shadow:0 2px 10px rgba(0,0,0,.28); flex-shrink:0 }
 
   /* HR Zone polarization bar */
   .z-row { display:grid; grid-template-columns:54px 1fr 48px; align-items:center; gap:10px; margin-bottom:7px; font-size:12px; font-variant-numeric:tabular-nums }
@@ -254,6 +276,7 @@
 <header>
   <div class="brand">
     <div class="title-row">
+      <img src="/icon.svg" alt="" class="brand-logo">
       <h1>Tri-hard-thlete</h1>
       <div id="racePill" title="Tap to set race &amp; weekly target"></div>
     </div>
@@ -318,6 +341,10 @@
       <div class="card">
         <div class="card-hd"><b>28-Day Consistency</b><span id="streakTxt"></span></div>
         <div class="cal-grid" id="calGrid"></div>
+        <div class="hm-sep">
+          <div class="hm-hd"><span>12-Week Activity Heatmap</span><span id="hmStreak"></span></div>
+          <div class="hm-grid" id="hmGrid"></div>
+        </div>
       </div>
     </div>
 
@@ -349,6 +376,7 @@
         <button data-d="140.6">Full (140.6)</button>
       </div>
       <div class="kv-grid" id="predGrid" style="margin-bottom:0"></div>
+      <div class="fuel-box" id="fuelBar"></div>
     </div>
 
     <div class="row2">
@@ -403,6 +431,8 @@
       <button data-sp="swim">Swim</button>
       <button data-sp="bike">Bike</button>
       <button data-sp="run">Run</button>
+      <input id="logSearch" class="log-search" type="search" placeholder="Search workouts…">
+      <button id="exportCsvBtn" type="button" style="color:var(--accent);font-weight:700">Export CSV</button>
     </div>
     <div class="card">
       <table>
@@ -768,6 +798,35 @@ function renderCalendar(bricks) {
   $('#calGrid').innerHTML = html;
   const brkCnt = [...bricks].filter(d => d >= new Date(startMon.getTime() - startMon.getTimezoneOffset()*60000).toISOString().slice(0,10)).length;
   $('#streakTxt').textContent = `${activeDays}/28 active days${brkCnt ? ` · ${brkCnt} brick` : ''}`;
+
+  // 12-Week (84-Day) Heatmap & Consecutive Active Week Streak
+  const hmStartMon = mondayOf(new Date(today.getTime() - 77*864e5)); // 12 weeks starting Monday
+  let hmHtml = '';
+  let wkStreak = 0;
+  for (let w = 0; w < 12; w++) {
+    let wkHasAct = false;
+    hmHtml += `<div class="hm-col">`;
+    for (let d = 0; d < 7; d++) {
+      const dt = new Date(hmStartMon.getTime() + (w*7 + d)*864e5);
+      const iso = new Date(dt.getTime() - dt.getTimezoneOffset()*60000).toISOString().slice(0,10);
+      const list = byDay[iso] || [];
+      if (list.length) wkHasAct = true;
+      const isToday = dt.getTime() === today.getTime();
+      let style = '';
+      if (list.length) {
+        const load = list.reduce((s,a)=>s+actLoad(a), 0);
+        const alpha = Math.min(1, Math.max(0.45, load / 110)).toFixed(2);
+        const dom = bricks.has(iso) ? C('--indigo') : (COLORS[list[0].sport] || COLORS.other);
+        style = `background:${dom};opacity:${alpha}`;
+      }
+      const tip = list.length ? `${iso}: ${list.map(a=>a.sport.toUpperCase()).join(' + ')}` : `${iso}: Rest`;
+      hmHtml += `<div class="hm-cell${isToday?' today':''}" style="${style}" title="${tip}"></div>`;
+    }
+    hmHtml += `</div>`;
+    if (wkHasAct) wkStreak++; else if (w < 11) wkStreak = 0;
+  }
+  $('#hmGrid').innerHTML = hmHtml;
+  $('#hmStreak').textContent = `${wkStreak}w active streak`;
 }
 
 function renderPMC(days) {
@@ -796,13 +855,23 @@ function renderPMC(days) {
   const curCTL = ctlArr[ctlArr.length-1] || 0;
   const curATL = atlArr[atlArr.length-1] || 0;
   const curTSB = +(curCTL - curATL).toFixed(1);
+  const ctl7dAgo = ctlArr[Math.max(0, ctlArr.length-8)] || 0;
+  const ramp7d = +(curCTL - ctl7dAgo).toFixed(1);
+  const acwr = curCTL > 3 ? +(curATL / curCTL).toFixed(2) : 1.00;
+  const rampCol = ramp7d > 7 ? COLORS.run : ramp7d >= 2 ? C('--green') : COLORS.bike;
+  const rampSub = ramp7d > 7 ? 'High injury risk (>7)' : ramp7d >= 2 ? 'Sweet spot (+2..+6)' : ramp7d >= -1 ? 'Maintenance' : 'Detraining / Taper';
+  const acwrCol = (acwr > 1.5 || acwr < 0.6) ? COLORS.run : (acwr >= 0.8 && acwr <= 1.3) ? C('--green') : COLORS.bike;
+  const acwrSub = acwr > 1.5 ? 'Danger zone (>1.5)' : (acwr >= 0.8 && acwr <= 1.3) ? 'Safe load (0.8–1.3)' : 'Caution zone';
+
   const formState = curTSB > 10 ? 'Fresh / Race Ready' : curTSB >= -10 ? 'Optimal Training' : curTSB >= -25 ? 'Productive Fatigue' : 'High Overload — Rest Soon';
   $('#pmcHint').textContent = formState;
 
   $('#pmcPills').innerHTML = `
-    <div class="pmc-pill"><div class="lbl">Fitness (CTL)</div><div class="val" style="color:${C('--accent')}">${curCTL.toFixed(0)}</div></div>
-    <div class="pmc-pill"><div class="lbl">Fatigue (ATL)</div><div class="val" style="color:${COLORS.run}">${curATL.toFixed(0)}</div></div>
-    <div class="pmc-pill"><div class="lbl">Form (TSB)</div><div class="val" style="color:${curTSB>=0?C('--green'):COLORS.bike}">${curTSB>0?'+'+curTSB:curTSB}</div></div>
+    <div class="pmc-pill"><div class="lbl">Fitness (CTL)</div><div class="val" style="color:${C('--accent')}">${curCTL.toFixed(0)}</div><div class="sub">42d chronic load</div></div>
+    <div class="pmc-pill"><div class="lbl">Fatigue (ATL)</div><div class="val" style="color:${COLORS.run}">${curATL.toFixed(0)}</div><div class="sub">7d acute load</div></div>
+    <div class="pmc-pill"><div class="lbl">Form (TSB)</div><div class="val" style="color:${curTSB>=0?C('--green'):COLORS.bike}">${curTSB>0?'+'+curTSB:curTSB}</div><div class="sub">${formState}</div></div>
+    <div class="pmc-pill"><div class="lbl">7d Ramp Rate</div><div class="val" style="color:${rampCol}">${ramp7d>0?'+'+ramp7d:ramp7d}<small style="font-size:11px;font-weight:600"> /wk</small></div><div class="sub">${rampSub}</div></div>
+    <div class="pmc-pill"><div class="lbl">Workload Ratio</div><div class="val" style="color:${acwrCol}">${acwr.toFixed(2)}</div><div class="sub">${acwrSub}</div></div>
   `;
 
   const sliceN = Math.min(dates.length, Math.max(14, days));
@@ -899,6 +968,23 @@ function renderPerformance(inR) {
     <div class="kv"><div class="k">Run Split</div><div class="v">${hms(runS)} <small class="mut" style="font-size:11px">(${fmtPace((runS/60)/(specs.r/1000))}/km)</small></div></div>
     <div class="kv"><div class="k">Transitions (T1+T2)</div><div class="v">${hms(specs.t)}</div></div>
     <div class="kv"><div class="k">Fatigue Factor</div><div class="v">${Math.round((specs.f-1)*100)>=0?'+'+Math.round((specs.f-1)*100):Math.round((specs.f-1)*100)}% decay</div></div>
+  `;
+
+  // Race-Day Fueling & Hydration Strategy (Bike + Run fueling hours)
+  const fuelHrs = (bikeS + runS) / 3600;
+  const carbRate = predDist==='sprint' ? 35 : predDist==='olympic' ? 60 : predDist==='70.3' ? 80 : 90;
+  const fluidRate = predDist==='sprint' ? 500 : predDist==='olympic' ? 650 : predDist==='70.3' ? 750 : 850;
+  const sodRate   = predDist==='sprint' ? 400 : predDist==='olympic' ? 600 : predDist==='70.3' ? 750 : 900;
+  const totCarbs = Math.round(carbRate * fuelHrs);
+  const gelsEq = Math.max(1, Math.round(totCarbs / 25));
+  const totFluidL = ((fluidRate * fuelHrs) / 1000).toFixed(1);
+  $('#fuelBar').innerHTML = `
+    <div class="fuel-hd"><span>Race-Day Nutrition &amp; Hydration Target (Bike + Run)</span><span>${fuelHrs.toFixed(1)}h fueling window</span></div>
+    <div class="fuel-grid">
+      <div class="fuel-item"><b>${carbRate} g/hr</b><span>~${totCarbs}g total (${gelsEq}×25g gels)</span></div>
+      <div class="fuel-item"><b>${fluidRate} ml/hr</b><span>~${totFluidL} L total fluid</span></div>
+      <div class="fuel-item"><b>${sodRate} mg/hr</b><span>~${Math.round(sodRate*fuelHrs)} mg sodium</span></div>
+    </div>
   `;
   // 1. Heart Rate Zones (from raw.hrTimeInZone_1..5 if present, else classified by session avg_hr)
   const zSec = [0, 0, 0, 0, 0];
@@ -1035,7 +1121,14 @@ function renderRecovery(days) {
 }
 
 function renderLog(inR, bricks) {
-  const list = [...inR].filter(a => logSportFilter === 'all' || a.sport === logSportFilter).reverse();
+  const q = ($('#logSearch')?.value || '').trim().toLowerCase();
+  const list = [...inR].filter(a => {
+    if (logSportFilter !== 'all' && a.sport !== logSportFilter) return false;
+    if (!q) return true;
+    const name = (a.raw?.activityName || a.sport).toLowerCase();
+    const d = a.start_time.slice(0,10);
+    return name.includes(q) || a.sport.includes(q) || d.includes(q);
+  }).reverse();
   $('#rows').innerHTML = list.map(a => {
     const d = a.start_time.slice(0,10);
     const name = a.raw?.activityName || a.sport.toUpperCase();
@@ -1084,6 +1177,42 @@ function openActivitySheet(id) {
   if (r.avgSwolf) items.push(['Avg SWOLF', Math.round(r.avgSwolf)]);
 
   $('#shGrid').innerHTML = items.map(([k,v]) => `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+
+  // Individual Workout 5-Zone HR Breakdown & Training Effect Gauges
+  const zNames = ['Z1 Easy', 'Z2 Base', 'Z3 Tempo', 'Z4 Thresh', 'Z5 VO2'];
+  const zCols  = ['#5AC8FA', '#34C759', '#FFCC00', '#FF9500', '#FF2D55'];
+  let zSec = [0,0,0,0,0];
+  const hasNative = [1,2,3,4,5].some(i => r['hrTimeInZone_'+i] != null);
+  if (hasNative) {
+    zSec = [1,2,3,4,5].map(i => +(r['hrTimeInZone_'+i] || 0));
+  } else if (a.avg_hr && a.duration_s) {
+    const hr = a.avg_hr;
+    const weights = hr < 125 ? [0.65,0.30,0.05,0,0]
+                  : hr < 145 ? [0.20,0.60,0.18,0.02,0]
+                  : hr < 162 ? [0.08,0.32,0.45,0.15,0]
+                  : hr < 176 ? [0.05,0.15,0.35,0.38,0.07]
+                  :            [0.03,0.10,0.22,0.40,0.25];
+    zSec = weights.map(w => Math.round(w * a.duration_s));
+  }
+  const totZ = zSec.reduce((x,y)=>x+y, 0);
+  if (totZ > 0) {
+    const zRows = zNames.map((nm, i) => {
+      const p = Math.round(zSec[i] / totZ * 100);
+      return `<div class="z-row">
+        <div class="z-lbl">${nm}</div>
+        <div class="z-track"><i style="width:${p}%;background:${zCols[i]}"></i></div>
+        <div style="text-align:right;font-weight:700">${p}% <span class="mut" style="font-weight:500">(${hms(zSec[i])})</span></div>
+      </div>`;
+    }).join('');
+    $('#shZones').innerHTML = `<div class="fuel-box" style="margin-top:4px">
+      <div class="fuel-hd"><span>Workout Heart Rate Zone Breakdown</span><span>${hasNative ? 'Garmin HR Zones' : 'Estimated from HR'}</span></div>
+      <div style="display:grid;gap:6px">${zRows}</div>
+    </div>`;
+    $('#shZones').querySelectorAll('.z-row').forEach(el => el.style.gridTemplateColumns = '62px 1fr 94px');
+  } else {
+    $('#shZones').innerHTML = '';
+  }
+
   $('#actSheet').classList.add('on');
 }
 
@@ -1139,10 +1268,34 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button,.tab').forEach(e => e.classList.remove('on'));
   b.classList.add('on'); $('#t-'+b.dataset.t).classList.add('on');
 });
-document.querySelectorAll('#logFilter button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#logFilter button').forEach(e => e.classList.remove('on'));
+document.querySelectorAll('#logFilter button[data-sp]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#logFilter button[data-sp]').forEach(e => e.classList.remove('on'));
   b.classList.add('on'); logSportFilter = b.dataset.sp; render();
 });
+$('#logSearch').oninput = () => render();
+$('#exportCsvBtn').onclick = () => {
+  const hdr = ['Date','Sport','Activity','Distance_km','Duration','Avg_HR','Max_HR','Calories','Load'];
+  const csvRows = [hdr.join(',')];
+  [...acts].reverse().forEach(a => {
+    const nm = (a.raw?.activityName || a.sport.toUpperCase()).replace(/"/g, '""');
+    csvRows.push([
+      a.start_time.slice(0,10),
+      a.sport,
+      `"${nm}"`,
+      km(a.distance_m||0),
+      hms(a.duration_s),
+      a.avg_hr ?? '',
+      a.max_hr ?? '',
+      a.calories ?? '',
+      actLoad(a)
+    ].join(','));
+  });
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tri-hard-activities-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+};
 
 // Sync = ask the cloud to pull fresh data from Garmin, wait for it to finish, then reload.
 let syncing = false;
