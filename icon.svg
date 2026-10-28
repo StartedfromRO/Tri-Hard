@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0A1124"/>
+      <stop offset="50%" stop-color="#05070E"/>
+      <stop offset="100%" stop-color="#140A24"/>
+    </linearGradient>
+    <linearGradient id="swim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#64D2FF"/>
+      <stop offset="100%" stop-color="#0A84FF"/>
+    </linearGradient>
+    <linearGradient id="bike" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFD60A"/>
+      <stop offset="100%" stop-color="#FF9F0A"/>
+    </linearGradient>
+    <linearGradient id="run" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF6482"/>
+      <stop offset="100%" stop-color="#FF2D55"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="115" fill="url(#bg)"/>
+  <g fill="none" stroke-linecap="round">
+    <circle cx="256" cy="256" r="185" stroke="#FF2D55" stroke-opacity="0.18" stroke-width="34"/>
+    <path d="M 256 71 A 185 185 0 1 1 95 348" stroke="url(#run)" stroke-width="34"/>
+    <circle cx="256" cy="256" r="138" stroke="#FF9F0A" stroke-opacity="0.18" stroke-width="34"/>
+    <path d="M 256 118 A 138 138 0 1 1 136 325" stroke="url(#bike)" stroke-width="34"/>
+    <circle cx="256" cy="256" r="91" stroke="#64D2FF" stroke-opacity="0.18" stroke-width="34"/>
+    <path d="M 256 165 A 91 91 0 1 1 178 302" stroke="url(#swim)" stroke-width="34"/>
+  </g>
+</svg>

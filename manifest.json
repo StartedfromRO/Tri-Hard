@@ -1,0 +1,17 @@
+{
+  "name": "Tri-hard-thlete",
+  "short_name": "Tri-Hard",
+  "description": "Personal Triathlon Performance & Recovery Hub",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070E",
+  "theme_color": "#05070E",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

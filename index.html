@@ -3,8 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#EEF2F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#05070E" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tri-Hard">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/icon.svg">
 <title>Tri-hard-thlete</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -209,6 +215,27 @@
   .field { display:flex; flex-direction:column; gap:5px; margin-bottom:12px }
   .field label { font-size:12px; font-weight:600; color:var(--mut) }
   .field input { padding:12px 14px; border-radius:14px; border:1px solid var(--border); background:var(--card2); box-shadow:var(--spec); color:var(--txt); font:inherit }
+  .field-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px }
+  .field-grid .field { margin-bottom:0 }
+
+  /* Daily Coach Banner, Rings & Gear */
+  .coach-card { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 18px;
+                background:linear-gradient(135deg, rgba(10,132,255,.16), rgba(48,209,88,.12), rgba(191,90,242,.14));
+                border:1px solid var(--border); border-radius:24px; margin-bottom:12px;
+                -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--spec), var(--shadow) }
+  .coach-tag { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); margin-bottom:2px }
+  .coach-msg { font-size:13.5px; font-weight:600; line-height:1.35 }
+  .rings-wrap { display:flex; align-items:center; gap:18px; margin-top:12px; padding-top:12px; border-top:1px solid var(--sep) }
+  .rings-svg { width:108px; height:108px; flex-shrink:0 }
+  .rings-meta { flex:1; display:flex; flex-direction:column; gap:7px }
+  .ring-row { display:flex; justify-content:space-between; align-items:center; font-size:12.5px; font-variant-numeric:tabular-nums }
+  .ring-row b { font-weight:700 }
+  .gear-row { display:flex; flex-direction:column; gap:5px; padding:10px 0; border-bottom:1px solid var(--sep) }
+  .gear-row:last-child { border-bottom:0; padding-bottom:0 }
+  .gear-top { display:flex; justify-content:space-between; align-items:baseline; font-size:13px }
+  .pred-tabs { display:flex; gap:5px; margin-bottom:12px; flex-wrap:wrap }
+  .pred-tabs button { padding:5px 11px; font-size:11.5px; background:var(--card2); border:1px solid var(--border); color:var(--mut) }
+  .pred-tabs button.on { background:var(--accent); color:#fff; border-color:var(--accent) }
 
   .tab { display:none } .tab.on { display:block; animation:fade .22s ease }
   @keyframes fade { from { opacity:0; transform:translateY(5px) } to { opacity:1; transform:none } }
@@ -261,21 +288,31 @@
 <main>
   <!-- DASHBOARD -->
   <section id="t-dash" class="tab on">
+    <div class="coach-card" id="coachBanner">
+      <div>
+        <div class="coach-tag">Daily Coach Insight</div>
+        <div class="coach-msg" id="coachTxt">Analyzing your training load and recovery readiness…</div>
+      </div>
+    </div>
+
     <div class="grid" id="totals"></div>
 
     <div class="row2">
       <div class="card">
-        <div class="card-hd"><b>Discipline Split &amp; Weekly Target</b><span id="splitSub"></span></div>
+        <div class="card-hd"><b>Discipline Split &amp; Weekly Rings</b><span id="splitSub"></span></div>
         <div class="split-bar" id="splitBar"></div>
         <div class="split-leg" id="splitLeg"></div>
+        <div class="rings-wrap">
+          <svg class="rings-svg" viewBox="0 0 120 120" id="wkRingsSvg"></svg>
+          <div class="rings-meta" id="wkRingsMeta"></div>
+        </div>
         <div class="goal-row">
           <div>
-            <div class="mut" style="font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em">This Week Volume vs Goal</div>
-            <div id="wkGoalTxt" style="font-size:19px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums"></div>
+            <div class="mut" style="font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em">This Week Total Hours</div>
+            <div id="wkGoalTxt" style="font-size:17px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums"></div>
           </div>
-          <button id="editGoalsBtn" style="font-size:12px;padding:6px 12px">Edit Target</button>
+          <button id="editGoalsBtn" style="font-size:12px;padding:6px 12px">Edit Targets</button>
         </div>
-        <div class="bar" style="margin-top:8px"><i id="wkGoalBar"></i></div>
       </div>
 
       <div class="card">
@@ -294,10 +331,26 @@
       <div class="pmc-pills" id="pmcPills"></div>
       <canvas id="pmcChart" height="150"></canvas>
     </div>
+
+    <div class="card">
+      <div class="card-hd"><b>Gear &amp; Shoe Mileage Tracker</b><button id="editGearBtn" style="font-size:11px;padding:4px 10px">Configure Gear</button></div>
+      <div id="gearList"></div>
+    </div>
   </section>
 
   <!-- PERFORMANCE -->
   <section id="t-perf" class="tab">
+    <div class="card">
+      <div class="card-hd"><b>Triathlon Race Time Predictor</b><span>Estimated from your recent paces + endurance decay</span></div>
+      <div class="pred-tabs" id="predTabs">
+        <button data-d="sprint">Sprint</button>
+        <button data-d="olympic">Olympic</button>
+        <button data-d="70.3" class="on">Half (70.3)</button>
+        <button data-d="140.6">Full (140.6)</button>
+      </div>
+      <div class="kv-grid" id="predGrid" style="margin-bottom:0"></div>
+    </div>
+
     <div class="row2">
       <div class="card">
         <div class="card-hd"><b>Heart Rate Zone Distribution</b><span id="polarHint"></span></div>
@@ -376,27 +429,46 @@
   </div>
 </div>
 
-<!-- RACE & GOAL SETTINGS SHEET -->
+<!-- RACE, WEEKLY RINGS & GEAR SETTINGS SHEET -->
 <div class="sheet-bg" id="goalSheet">
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-top">
-      <h2>Race &amp; Weekly Targets</h2>
+      <h2>Targets &amp; Gear Setup</h2>
       <button id="goalClose">Cancel</button>
     </div>
     <div class="field">
       <label>Target Race Name</label>
       <input id="inRaceName" type="text" placeholder="e.g. Ironman 70.3 Langkawi">
     </div>
-    <div class="field">
-      <label>Race Date</label>
-      <input id="inRaceDate" type="date">
+    <div class="row2" style="margin-bottom:12px;grid-template-columns:1fr 1fr">
+      <div class="field" style="margin-bottom:0">
+        <label>Race Date</label>
+        <input id="inRaceDate" type="date">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Weekly Total Hours</label>
+        <input id="inWkHrs" type="number" step="0.5" min="1" max="40" placeholder="8">
+      </div>
     </div>
-    <div class="field">
-      <label>Weekly Volume Target (Hours)</label>
-      <input id="inWkHrs" type="number" step="0.5" min="1" max="40" placeholder="8">
+    <div class="mut" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Weekly Sport Distance Rings (km)</div>
+    <div class="field-grid">
+      <div class="field"><label>Swim (km)</label><input id="inWkSwimKm" type="number" step="0.5" placeholder="3"></div>
+      <div class="field"><label>Bike (km)</label><input id="inWkBikeKm" type="number" step="5" placeholder="100"></div>
+      <div class="field"><label>Run (km)</label><input id="inWkRunKm" type="number" step="1" placeholder="25"></div>
     </div>
-    <button id="saveGoals" style="width:100%;padding:13px;background:var(--accent);color:#fff;font-size:15px">Save Targets</button>
+    <div class="mut" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">Gear &amp; Maintenance Tracking</div>
+    <div class="field-grid">
+      <div class="field"><label>Running Shoe</label><input id="inShoeName" type="text" placeholder="Daily Trainer"></div>
+      <div class="field"><label>Start Date</label><input id="inShoeStart" type="date"></div>
+      <div class="field"><label>Max Life (km)</label><input id="inShoeMax" type="number" step="50" placeholder="700"></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Bike Name</label><input id="inBikeName" type="text" placeholder="Road / TT Bike"></div>
+      <div class="field"><label>Last Service</label><input id="inBikeStart" type="date"></div>
+      <div class="field"><label>Service Every (km)</label><input id="inBikeMax" type="number" step="100" placeholder="2500"></div>
+    </div>
+    <button id="saveGoals" style="width:100%;padding:13px;background:var(--accent);color:#fff;font-size:15px;margin-top:6px">Save All Settings</button>
   </div>
 </div>
 
@@ -418,13 +490,20 @@ Chart.defaults.plugins.legend.labels.boxHeight = 7;
 Chart.defaults.plugins.legend.labels.padding = 16;
 Chart.defaults.color = C('--mut');
 const $ = s => document.querySelector(s);
-let acts = [], health = [], charts = {}, logSportFilter = 'all', cloudGoals = null;
+let acts = [], health = [], charts = {}, logSportFilter = 'all', predDist = '70.3', cloudGoals = null;
+
+const DEFAULT_GOALS = {
+  raceName: '70.3 Race Day', raceDate: '', wkHrs: 8,
+  wkSwimKm: 3, wkBikeKm: 100, wkRunKm: 25,
+  shoeName: 'Daily Running Shoes', shoeStart: '', shoeMax: 700,
+  bikeName: 'Tri / Road Bike', bikeStart: '', bikeMax: 2500
+};
 
 function getGoals() {
-  if (cloudGoals) return cloudGoals;
+  if (cloudGoals) return { ...DEFAULT_GOALS, ...cloudGoals };
   try {
-    return JSON.parse(localStorage.getItem('tri-goals')) || { raceName: '70.3 Race Day', raceDate: '', wkHrs: 8 };
-  } catch { return { raceName: '70.3 Race Day', raceDate: '', wkHrs: 8 }; }
+    return { ...DEFAULT_GOALS, ...(JSON.parse(localStorage.getItem('tri-goals')) || {}) };
+  } catch { return { ...DEFAULT_GOALS }; }
 }
 async function setGoals(g) {
   cloudGoals = g;
@@ -601,12 +680,33 @@ function render() {
 
   const g = getGoals();
   const mon = mondayOf(new Date());
-  const thisWkHrs = acts.filter(a => new Date(a.start_time) >= mon).reduce((s,a)=>s+(a.duration_s||0)/3600, 0);
+  const wkActs = acts.filter(a => new Date(a.start_time) >= mon);
+  const thisWkHrs = wkActs.reduce((s,a)=>s+(a.duration_s||0)/3600, 0);
   const goalHrs = +g.wkHrs || 8;
   const goalPct = Math.min(100, Math.round(thisWkHrs / goalHrs * 100));
   $('#wkGoalTxt').textContent = `${thisWkHrs.toFixed(1)} / ${goalHrs} hrs (${goalPct}%)`;
-  $('#wkGoalBar').style.width = goalPct + '%';
-  $('#wkGoalBar').style.background = goalPct >= 100 ? C('--green') : C('--accent');
+
+  // Per-discipline Apple Fitness 3-Ring SVG + progress rows
+  const wkKm = sp => wkActs.filter(a=>a.sport===sp).reduce((s,a)=>s+(a.distance_m||0)/1000, 0);
+  const ringData = [
+    { sp:'run',  lbl:'Run',  cur:wkKm('run'),  goal:+g.wkRunKm||25,  r:48, col:COLORS.run },
+    { sp:'bike', lbl:'Bike', cur:wkKm('bike'), goal:+g.wkBikeKm||100, r:35, col:COLORS.bike },
+    { sp:'swim', lbl:'Swim', cur:wkKm('swim'), goal:+g.wkSwimKm||3,   r:22, col:COLORS.swim }
+  ];
+  $('#wkRingsSvg').innerHTML = ringData.map(x => {
+    const c = 2 * Math.PI * x.r;
+    const p = Math.min(1, x.cur / (x.goal || 1));
+    return `<circle cx="60" cy="60" r="${x.r}" fill="none" stroke="${x.col}" stroke-opacity="0.18" stroke-width="10"/>
+      <circle cx="60" cy="60" r="${x.r}" fill="none" stroke="${x.col}" stroke-width="10" stroke-linecap="round"
+        stroke-dasharray="${(p*c).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 60 60)"/>`;
+  }).join('');
+  $('#wkRingsMeta').innerHTML = ringData.map(x => {
+    const p = Math.round(x.cur / (x.goal || 1) * 100);
+    return `<div class="ring-row">
+      <span><span class="dot" style="background:${x.col}"></span><b>${x.lbl}</b></span>
+      <span>${x.cur.toFixed(1)} / ${x.goal} km <span class="mut">(${p}%)</span></span>
+    </div>`;
+  }).join('');
 
   // 3. 28-Day consistency calendar
   renderCalendar(bricks);
@@ -623,15 +723,19 @@ function render() {
     options:{scales:{x:{...axis,stacked:true},y:{...axis,stacked:true}},plugins:{legend:{labels:{color:C('--txt')}}}}});
 
   // 5. Fitness / Fatigue / Form (PMC)
-  renderPMC(days);
+  const pmcNow = renderPMC(days);
 
-  // 6. Performance tab (Zones, PRs, Aerobic Efficiency, Pace/Speed charts)
+  // 6. Gear & Shoe Mileage Tracker
+  renderGear(g);
+
+  // 7. Performance tab (Race Predictor, Zones, PRs, Aerobic Efficiency, Pace/Speed charts)
   renderPerformance(inR);
 
-  // 7. Recovery tab
-  renderRecovery(days);
+  // 8. Recovery tab + Daily Coach Banner
+  const recNow = renderRecovery(days);
+  renderCoachBanner(pmcNow, recNow, thisWkHrs, goalHrs);
 
-  // 8. Log tab
+  // 9. Log tab
   renderLog(inR, bricks);
 }
 
@@ -714,9 +818,88 @@ function renderPMC(days) {
     },
     options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}
   });
+  return { ctl: curCTL, atl: curATL, tsb: curTSB, state: formState };
+}
+
+function renderGear(g) {
+  const shoeStart = g.shoeStart || '2000-01-01';
+  const bikeStart = g.bikeStart || '2000-01-01';
+  const shoeKm = acts.filter(a => a.sport==='run' && a.start_time.slice(0,10) >= shoeStart).reduce((s,a)=>s+(a.distance_m||0)/1000, 0);
+  const bikeKm = acts.filter(a => a.sport==='bike' && a.start_time.slice(0,10) >= bikeStart).reduce((s,a)=>s+(a.distance_m||0)/1000, 0);
+  const items = [
+    { name: g.shoeName || 'Running Shoes', cur: shoeKm, max: +g.shoeMax || 700, col: COLORS.run, sub: g.shoeStart ? `Since ${g.shoeStart}` : 'All logged runs' },
+    { name: g.bikeName || 'Road / TT Bike', cur: bikeKm, max: +g.bikeMax || 2500, col: COLORS.bike, sub: g.bikeStart ? `Since ${g.bikeStart}` : 'All logged rides' }
+  ];
+  $('#gearList').innerHTML = items.map(it => {
+    const pct = Math.min(100, Math.round(it.cur / it.max * 100));
+    const barCol = pct >= 90 ? COLORS.run : pct >= 75 ? COLORS.bike : it.col;
+    return `<div class="gear-row">
+      <div class="gear-top">
+        <span><b>${it.name}</b> <span class="mut">· ${it.sub}</span></span>
+        <span style="font-weight:700;font-variant-numeric:tabular-nums">${it.cur.toFixed(0)} / ${it.max} km (${pct}%)</span>
+      </div>
+      <div class="bar"><i style="width:${pct}%;background:${barCol}"></i></div>
+    </div>`;
+  }).join('');
+}
+
+function renderCoachBanner(pmc, rec, wkHrs, goalHrs) {
+  const tsb = pmc?.tsb ?? 0;
+  const score = rec?.score;
+  const hrvDelta = rec?.hrvDelta;
+  const remHrs = Math.max(0, goalHrs - wkHrs).toFixed(1);
+  let msg = '';
+  if (score != null) {
+    const hrvTxt = hrvDelta != null ? `HRV is ${hrvDelta>=0?'+'+hrvDelta.toFixed(0):hrvDelta.toFixed(0)} ms vs baseline` : `Readiness is ${score}/100`;
+    if (score >= 75 && tsb >= -15) {
+      msg = `${hrvTxt} and Form is ${tsb>0?'+'+tsb:tsb} — prime window for a key threshold session or brick workout (${remHrs}h left on weekly goal).`;
+    } else if (score < 50 || tsb < -25) {
+      msg = `${hrvTxt} with Form at ${tsb} — high accumulated strain. Prioritize Zone 1 active recovery, mobility, or extra sleep tonight.`;
+    } else {
+      msg = `${hrvTxt} and Form is ${tsb>0?'+'+tsb:tsb} — steady aerobic building day. Keep effort in Zone 2 (${remHrs}h remaining this week).`;
+    }
+  } else {
+    msg = `Form (TSB) is ${tsb>0?'+'+tsb:tsb} (${pmc?.state || 'Building'}) · ${wkHrs.toFixed(1)} of ${goalHrs} weekly hours completed.`;
+  }
+  $('#coachTxt').textContent = msg;
 }
 
 function renderPerformance(inR) {
+  // 0. Race Time Predictor (Sprint, Olympic, 70.3, 140.6)
+  const specs = {
+    'sprint':  { s:750,  b:20000,  r:5000,  t:180, f:0.97 },
+    'olympic': { s:1500, b:40000,  r:10000, t:270, f:1.00 },
+    '70.3':    { s:1900, b:90000,  r:21097, t:390, f:1.06 },
+    '140.6':   { s:3800, b:180000, r:42195, t:600, f:1.14 }
+  }[predDist];
+
+  const allSwims = acts.filter(a=>a.sport==='swim' && a.distance_m>200 && a.duration_s);
+  const allBikes = acts.filter(a=>a.sport==='bike' && a.distance_m>2000 && a.duration_s);
+  const allRuns  = acts.filter(a=>a.sport==='run'  && a.distance_m>1000 && a.duration_s);
+
+  // Base pace in sec per meter (weighted toward better half of recent sessions)
+  const medSpd = (list, dfltMps) => {
+    if (!list.length) return dfltMps;
+    const spds = list.map(a => a.distance_m / a.duration_s).sort((a,b)=>b-a);
+    return spds[Math.min(spds.length-1, Math.floor(spds.length * 0.35))];
+  };
+  const swimMps = medSpd(allSwims, 0.95) / specs.f;
+  const bikeMps = medSpd(allBikes, 8.33) / specs.f;
+  const runMps  = medSpd(allRuns,  3.10) / specs.f;
+
+  const swimS = specs.s / swimMps;
+  const bikeS = specs.b / bikeMps;
+  const runS  = specs.r / runMps;
+  const totS  = swimS + bikeS + runS + specs.t;
+
+  $('#predGrid').innerHTML = `
+    <div class="kv"><div class="k">Est. Finish Time</div><div class="v" style="color:var(--accent)">${hms(totS)}</div></div>
+    <div class="kv"><div class="k">Swim Split</div><div class="v">${hms(swimS)} <small class="mut" style="font-size:11px">(${fmtPace((swimS/60)/(specs.s/100))}/100m)</small></div></div>
+    <div class="kv"><div class="k">Bike Split</div><div class="v">${hms(bikeS)} <small class="mut" style="font-size:11px">(${(specs.b/bikeS*3.6).toFixed(1)} km/h)</small></div></div>
+    <div class="kv"><div class="k">Run Split</div><div class="v">${hms(runS)} <small class="mut" style="font-size:11px">(${fmtPace((runS/60)/(specs.r/1000))}/km)</small></div></div>
+    <div class="kv"><div class="k">Transitions (T1+T2)</div><div class="v">${hms(specs.t)}</div></div>
+    <div class="kv"><div class="k">Fatigue Factor</div><div class="v">${Math.round((specs.f-1)*100)>=0?'+'+Math.round((specs.f-1)*100):Math.round((specs.f-1)*100)}% decay</div></div>
+  `;
   // 1. Heart Rate Zones (from raw.hrTimeInZone_1..5 if present, else classified by session avg_hr)
   const zSec = [0, 0, 0, 0, 0];
   inR.forEach(a => {
@@ -798,15 +981,17 @@ function renderRecovery(days) {
   const labels = hs.map(h=>h.calendar_date.slice(5));
 
   const last = all[all.length-1];
+  let outScore = null, outHrvDelta = null;
   if (last) {
     $('#readyDate').textContent = last.calendar_date;
     const b28 = avg(vals(all.slice(-29,-1),'hrv_night_avg')), r28 = avg(vals(all.slice(-29,-1),'resting_hr'));
     let score = 50, n = 0;
-    if (last.hrv_night_avg && b28) { score += Math.max(-25, Math.min(25, (last.hrv_night_avg/b28-1)*100)); n++; }
+    if (last.hrv_night_avg && b28) { score += Math.max(-25, Math.min(25, (last.hrv_night_avg/b28-1)*100)); n++; outHrvDelta = last.hrv_night_avg - b28; }
     if (last.resting_hr && r28) { score += Math.max(-15, Math.min(15, (r28-last.resting_hr)*3)); n++; }
     if (last.sleep_score) { score += (last.sleep_score-70)/3; n++; }
     if (last.body_battery_high) { score += (last.body_battery_high-70)/4; n++; }
     score = Math.round(Math.max(0, Math.min(100, score)));
+    if (n) outScore = score;
     $('#ready').textContent = n ? score + ' / 100' : '–';
     $('#readyHint').textContent = !n ? 'No health data yet' : score>=75 ? 'Prime readiness — high-intensity or key brick session OK' : score>=50 ? 'Moderate readiness — keep effort controlled in Zone 2' : 'Low readiness — prioritize active recovery or rest';
     $('#readyBar').style.width = (n ? score : 0) + '%';
@@ -846,6 +1031,7 @@ function renderRecovery(days) {
     {label:'high', data:hs.map(h=>h.body_battery_high), borderColor:COLORS.swim, backgroundColor:COLORS.swim, pointRadius:1},
     {label:'low', data:hs.map(h=>h.body_battery_low), borderColor:COLORS.other, backgroundColor:COLORS.other, pointRadius:1}]},
     options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}});
+  return { score: outScore, hrvDelta: outHrvDelta };
 }
 
 function renderLog(inR, bricks) {
@@ -910,22 +1096,45 @@ function openGoalSheet() {
   $('#inRaceName').value = g.raceName || '';
   $('#inRaceDate').value = g.raceDate || '';
   $('#inWkHrs').value = g.wkHrs || 8;
+  $('#inWkSwimKm').value = g.wkSwimKm || 3;
+  $('#inWkBikeKm').value = g.wkBikeKm || 100;
+  $('#inWkRunKm').value = g.wkRunKm || 25;
+  $('#inShoeName').value = g.shoeName || 'Running Shoes';
+  $('#inShoeStart').value = g.shoeStart || '';
+  $('#inShoeMax').value = g.shoeMax || 700;
+  $('#inBikeName').value = g.bikeName || 'Road / Tri Bike';
+  $('#inBikeStart').value = g.bikeStart || '';
+  $('#inBikeMax').value = g.bikeMax || 3000;
   $('#goalSheet').classList.add('on');
 }
 $('#racePill').onclick = openGoalSheet;
 $('#editGoalsBtn').onclick = openGoalSheet;
+$('#editGearBtn').onclick = openGoalSheet;
 $('#goalClose').onclick = () => $('#goalSheet').classList.remove('on');
 $('#goalSheet').onclick = (e) => { if (e.target.id === 'goalSheet') $('#goalSheet').classList.remove('on'); };
 $('#saveGoals').onclick = () => {
   setGoals({
     raceName: $('#inRaceName').value.trim() || 'Race Day',
     raceDate: $('#inRaceDate').value,
-    wkHrs: parseFloat($('#inWkHrs').value) || 8
+    wkHrs: parseFloat($('#inWkHrs').value) || 8,
+    wkSwimKm: parseFloat($('#inWkSwimKm').value) || 3,
+    wkBikeKm: parseFloat($('#inWkBikeKm').value) || 100,
+    wkRunKm: parseFloat($('#inWkRunKm').value) || 25,
+    shoeName: $('#inShoeName').value.trim() || 'Running Shoes',
+    shoeStart: $('#inShoeStart').value,
+    shoeMax: parseFloat($('#inShoeMax').value) || 700,
+    bikeName: $('#inBikeName').value.trim() || 'Road / Tri Bike',
+    bikeStart: $('#inBikeStart').value,
+    bikeMax: parseFloat($('#inBikeMax').value) || 3000
   });
   $('#goalSheet').classList.remove('on');
 };
 
 // Navigation & sport filters
+document.querySelectorAll('#predTabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#predTabs button').forEach(e => e.classList.remove('on'));
+  b.classList.add('on'); predDist = b.dataset.dist; render();
+});
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button,.tab').forEach(e => e.classList.remove('on'));
   b.classList.add('on'); $('#t-'+b.dataset.t).classList.add('on');
