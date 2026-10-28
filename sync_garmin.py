@@ -25,10 +25,18 @@ api.login(TOKENS)   # reuses cached tokens if present, else logs in and saves th
 today = dt.date.today()
 start = today - dt.timedelta(days=days)
 
+def webhook_secret():
+    # GitHub Actions passes it as an env var; on your Mac it is read from a private file.
+    s = os.environ.get("WEBHOOK_SECRET")
+    if not s:
+        try: s = open(os.path.join(TOKENS, "webhook_secret")).read()
+        except OSError: s = ""
+    return s.strip()
+
 def post(payload):
     req = urllib.request.Request(WEBHOOK, json.dumps(payload).encode(),
                                  {"Content-Type": "application/json",
-                                  "x-webhook-secret": os.environ.get("WEBHOOK_SECRET", "")})
+                                  "x-webhook-secret": webhook_secret()})
     try:
         return urllib.request.urlopen(req, timeout=60).read().decode()
     except urllib.error.HTTPError as e:
