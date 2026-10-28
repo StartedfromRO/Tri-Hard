@@ -986,24 +986,18 @@ function renderPerformance(inR) {
       <div class="fuel-item"><b>${sodRate} mg/hr</b><span>~${Math.round(sodRate*fuelHrs)} mg sodium</span></div>
     </div>
   `;
-  // 1. Heart Rate Zones (from raw.hrTimeInZone_1..5 if present, else classified by session avg_hr)
+  // 1. Heart Rate Zones — Karvonen (HRR) Triathlon Calibration
+  // Z1 <132 | Z2 132–149 | Z3 150–162 | Z4 163–173 | Z5 174+ bpm
   const zSec = [0, 0, 0, 0, 0];
   inR.forEach(a => {
-    const r = a.raw || {};
-    const hasNative = [1,2,3,4,5].some(i => r['hrTimeInZone_'+i] != null);
-    if (hasNative) {
-      [1,2,3,4,5].forEach(i => { zSec[i-1] += (r['hrTimeInZone_'+i] || 0); });
-    } else if (a.avg_hr && a.duration_s) {
-      const hr = a.avg_hr;
-      const idx = hr < 125 ? 0 : hr < 145 ? 1 : hr < 162 ? 2 : hr < 176 ? 3 : 4;
-      zSec[idx] += a.duration_s;
-    }
+    const az = actHRZones(a).sec;
+    for (let i = 0; i < 5; i++) zSec[i] += az[i];
   });
   const totZ = zSec.reduce((x,y)=>x+y, 0) || 1;
-  const zNames = ['Z1 Easy', 'Z2 Base', 'Z3 Tempo', 'Z4 Thresh', 'Z5 VO2'];
+  const zNames = ['Z1 <132', 'Z2 Base', 'Z3 Tempo', 'Z4 Thresh', 'Z5 VO2'];
   const zCols = ['#5AC8FA', '#34C759', '#FFCC00', '#FF9500', '#FF2D55'];
   const easyPct = Math.round((zSec[0] + zSec[1]) / totZ * 100);
-  $('#polarHint').textContent = zSec.some(v=>v>0) ? `${easyPct}% Easy (Z1–Z2) · ${100-easyPct}% Mod/Hard` : 'Sync HR sessions to populate';
+  $('#polarHint').textContent = zSec.some(v=>v>0) ? `${easyPct}% Easy/Base (Z1–Z2) · ${100-easyPct}% Tempo+ (HRR)` : 'Sync HR sessions to populate';
   $('#zoneBars').innerHTML = zNames.map((nm, i) => {
     const p = zSec.some(v=>v>0) ? Math.round(zSec[i] / totZ * 100) : 0;
     return `<div class="z-row">
@@ -1149,6 +1143,45 @@ function renderLog(inR, bricks) {
   });
 }
 
+function actHRZones(a) {
+  const r = a.raw || {};
+  const hasNative = [1,2,3,4,5].some(i => r['hrTimeInZone_'+i] != null);
+  if (hasNative) {
+    // Map Garmin's raw buckets ([94-112, 113-131, 132-149, 150-168, 169+])
+    // to Karvonen (HRR) Triathlon Zones:
+    // Z1 Easy (<132), Z2 Base (132-149), Z3 Tempo (150-162), Z4 Thresh (163-173), Z5 VO2 (174+)
+    const g1 = +(r.hrTimeInZone_1 || 0);
+    const g2 = +(r.hrTimeInZone_2 || 0);
+    const g3 = +(r.hrTimeInZone_3 || 0);
+    const g4 = +(r.hrTimeInZone_4 || 0);
+    const g5 = +(r.hrTimeInZone_5 || 0);
+    const mx = a.max_hr || a.avg_hr || 150;
+    const z4Share = mx <= 162 ? 0 : Math.min(0.75, (mx - 162) / 12);
+    const z5Share = mx < 174 ? 0 : Math.min(0.85, (mx - 173) / 10);
+    return {
+      native: true,
+      sec: [
+        Math.round(g1 + g2),
+        Math.round(g3),
+        Math.round(g4 * (1 - z4Share)),
+        Math.round(g4 * z4Share + g5 * (1 - z5Share)),
+        Math.round(g5 * z5Share)
+      ]
+    };
+  }
+  if (a.avg_hr && a.duration_s) {
+    const hr = a.avg_hr;
+    const w = hr < 130 ? [0.80,0.20,0,0,0]
+            : hr < 146 ? [0.06,0.90,0.04,0,0]
+            : hr < 152 ? [0.04,0.76,0.20,0,0]
+            : hr < 163 ? [0.04,0.20,0.66,0.10,0]
+            : hr < 174 ? [0.03,0.10,0.25,0.55,0.07]
+            :            [0.02,0.08,0.15,0.35,0.40];
+    return { native: false, sec: w.map(x => Math.round(x * a.duration_s)) };
+  }
+  return { native: false, sec: [0,0,0,0,0] };
+}
+
 function openActivitySheet(id) {
   const a = acts.find(x => String(x.summary_id) === String(id));
   if (!a) return;
@@ -1178,22 +1211,16 @@ function openActivitySheet(id) {
 
   $('#shGrid').innerHTML = items.map(([k,v]) => `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
 
-  // Individual Workout 5-Zone HR Breakdown & Training Effect Gauges
-  const zNames = ['Z1 Easy', 'Z2 Base', 'Z3 Tempo', 'Z4 Thresh', 'Z5 VO2'];
-  const zCols  = ['#5AC8FA', '#34C759', '#FFCC00', '#FF9500', '#FF2D55'];
-  let zSec = [0,0,0,0,0];
-  const hasNative = [1,2,3,4,5].some(i => r['hrTimeInZone_'+i] != null);
-  if (hasNative) {
-    zSec = [1,2,3,4,5].map(i => +(r['hrTimeInZone_'+i] || 0));
-  } else if (a.avg_hr && a.duration_s) {
-    const hr = a.avg_hr;
-    const weights = hr < 125 ? [0.65,0.30,0.05,0,0]
-                  : hr < 145 ? [0.20,0.60,0.18,0.02,0]
-                  : hr < 162 ? [0.08,0.32,0.45,0.15,0]
-                  : hr < 176 ? [0.05,0.15,0.35,0.38,0.07]
-                  :            [0.03,0.10,0.22,0.40,0.25];
-    zSec = weights.map(w => Math.round(w * a.duration_s));
-  }
+  // Individual Workout 5-Zone HR Breakdown (Karvonen HRR Calibrated)
+  const zNames = [
+    'Z1 <132',
+    'Z2 132–149',
+    'Z3 150–162',
+    'Z4 163–173',
+    'Z5 174+'
+  ];
+  const zCols = ['#5AC8FA', '#34C759', '#FFCC00', '#FF9500', '#FF2D55'];
+  const { native: hasNative, sec: zSec } = actHRZones(a);
   const totZ = zSec.reduce((x,y)=>x+y, 0);
   if (totZ > 0) {
     const zRows = zNames.map((nm, i) => {
@@ -1205,10 +1232,10 @@ function openActivitySheet(id) {
       </div>`;
     }).join('');
     $('#shZones').innerHTML = `<div class="fuel-box" style="margin-top:4px">
-      <div class="fuel-hd"><span>Workout Heart Rate Zone Breakdown</span><span>${hasNative ? 'Garmin HR Zones' : 'Estimated from HR'}</span></div>
+      <div class="fuel-hd"><span>Workout Heart Rate Zones (Karvonen HRR)</span><span>${hasNative ? 'Garmin HR · Z2=132–149' : 'HRR Calibrated'}</span></div>
       <div style="display:grid;gap:6px">${zRows}</div>
     </div>`;
-    $('#shZones').querySelectorAll('.z-row').forEach(el => el.style.gridTemplateColumns = '62px 1fr 94px');
+    $('#shZones').querySelectorAll('.z-row').forEach(el => el.style.gridTemplateColumns = '76px 1fr 94px');
   } else {
     $('#shZones').innerHTML = '';
   }
