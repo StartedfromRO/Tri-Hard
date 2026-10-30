@@ -66,7 +66,7 @@
   .tappable { cursor:pointer; transition:transform .16s cubic-bezier(.2,.8,.2,1), border-color .16s }
   .tappable:active { transform:scale(.97) }
 
-  header { max-width:960px; margin:auto; padding:calc(18px + env(safe-area-inset-top)) 20px 10px;
+  header { max-width:960px; margin:auto; padding:max(52px, calc(18px + env(safe-area-inset-top))) 20px 10px;
            display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap }
   .brand { display:flex; flex-direction:column; gap:4px }
   .title-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
@@ -204,17 +204,18 @@
   .bar i { display:block; height:100%; width:0; border-radius:99px; transition:width .6s cubic-bezier(.2,.8,.2,1) }
   #readyBar { background:var(--green) }
 
-  /* Log filter + table */
+  /* Log filter + horizontally swipeable table */
   .filter-bar { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap }
   .filter-bar button { padding:6px 14px; font-size:12px; background:var(--card); border:1px solid var(--border); color:var(--mut) }
   .filter-bar button.on { background:linear-gradient(135deg, rgba(10,132,255,.9), rgba(0,102,220,.8)); color:#fff; border-color:rgba(255,255,255,.4) }
-  table { width:100%; border-collapse:collapse }
-  th { color:var(--mut); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em }
-  td,th { padding:12px 6px; text-align:left; border-bottom:1px solid var(--sep); font-size:13.5px; font-variant-numeric:tabular-nums }
-  @media (max-width:520px) {
-    td,th { padding:10px 4px; font-size:12.5px }
-    th:nth-child(6), td:nth-child(6), th:nth-child(7), td:nth-child(7) { display:none }
-  }
+  .table-wrap { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; padding-bottom:4px }
+  .table-wrap::-webkit-scrollbar { height:5px }
+  .table-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px }
+  table { width:100%; min-width:540px; border-collapse:collapse }
+  th { color:var(--mut); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap }
+  td,th { padding:12px 10px; text-align:left; border-bottom:1px solid var(--sep); font-size:13.5px; font-variant-numeric:tabular-nums; white-space:nowrap }
+  td:first-child, th:first-child { padding-left:4px }
+  td:last-child, th:last-child { padding-right:4px }
   tbody tr { cursor:pointer; transition:background .15s }
   tbody tr:hover, tbody tr:active { background:var(--fill) }
   tr:last-child td { border-bottom:0 }
@@ -441,10 +442,13 @@
       <button id="exportCsvBtn" type="button" style="color:var(--accent);font-weight:700">Export CSV</button>
     </div>
     <div class="card">
-      <table>
-        <thead><tr><th>Date</th><th>Activity</th><th>Dist</th><th>Time</th><th>Pace / Spd</th><th>HR</th><th>Load</th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
+      <div class="card-hd" style="margin-bottom:6px"><b>Workout History</b><span>Swipe table left/right · Tap row for details</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Activity</th><th>Dist</th><th>Time</th><th>Pace / Spd</th><th>HR</th><th>Load</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
     </div>
   </section>
 </main>
