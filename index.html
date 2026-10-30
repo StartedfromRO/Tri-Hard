@@ -29,7 +29,7 @@
     --sep:rgba(255,255,255,.45); --grid:rgba(20,22,31,.07);
     --fill:rgba(255,255,255,.48);
     --accent:#007AFF;
-    --glass:linear-gradient(135deg, rgba(255,255,255,.68), rgba(255,255,255,.40));
+    --glass:linear-gradient(145deg, rgba(246,249,255,.98), rgba(232,238,249,.98));
     --border:rgba(255,255,255,.78);
     --spec:inset 0 1.5px 1px rgba(255,255,255,.92), inset 0 -1px 1px rgba(255,255,255,.35);
     --shadow:0 10px 32px -4px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.04);
@@ -50,7 +50,7 @@
     --sep:rgba(255,255,255,.10); --grid:rgba(255,255,255,.08);
     --fill:rgba(255,255,255,.10);
     --accent:#0A84FF;
-    --glass:linear-gradient(135deg, rgba(30,34,48,.62), rgba(16,18,28,.42));
+    --glass:linear-gradient(145deg, rgba(22,26,40,.98), rgba(11,14,24,.98));
     --border:rgba(255,255,255,.18);
     --spec:inset 0 1px 1px rgba(255,255,255,.32), inset 0 -1px 1px rgba(255,255,255,.05);
     --shadow:0 14px 40px -6px rgba(0,0,0,.55), 0 2px 10px rgba(0,0,0,.35);
@@ -62,7 +62,9 @@
   body { margin:0; font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter",system-ui,sans-serif;
          background-color:var(--bg); background-image:var(--bg-mesh); background-attachment:fixed;
          color:var(--txt); padding-bottom:calc(40px + env(safe-area-inset-bottom));
-         -webkit-font-smoothing:antialiased; min-height:100vh }
+         -webkit-font-smoothing:antialiased; min-height:100vh; overflow-x:hidden }
+  .tappable { cursor:pointer; transition:transform .16s cubic-bezier(.2,.8,.2,1), border-color .16s }
+  .tappable:active { transform:scale(.97) }
 
   header { max-width:960px; margin:auto; padding:calc(18px + env(safe-area-inset-top)) 20px 10px;
            display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap }
@@ -209,24 +211,28 @@
   table { width:100%; border-collapse:collapse }
   th { color:var(--mut); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em }
   td,th { padding:12px 6px; text-align:left; border-bottom:1px solid var(--sep); font-size:13.5px; font-variant-numeric:tabular-nums }
+  @media (max-width:520px) {
+    td,th { padding:10px 4px; font-size:12.5px }
+    th:nth-child(6), td:nth-child(6), th:nth-child(7), td:nth-child(7) { display:none }
+  }
   tbody tr { cursor:pointer; transition:background .15s }
   tbody tr:hover, tbody tr:active { background:var(--fill) }
   tr:last-child td { border-bottom:0 }
   .badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:99px; margin-left:6px; background:rgba(255,149,0,.20); border:1px solid rgba(255,149,0,.35); color:var(--bike); text-transform:uppercase }
 
-  /* Bottom Sheet Modal (Activity detail + Race/Goal settings) */
-  .sheet-bg { display:none; position:fixed; inset:0; z-index:20; background:rgba(5,7,14,.52);
-              -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); align-items:flex-end; justify-content:center }
+  /* Centered Detail Modal (Activity detail, Metric drill-downs + Race/Goal settings) */
+  .sheet-bg { display:none; position:fixed; inset:0; z-index:40; background:rgba(4,6,14,.82);
+              -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px);
+              align-items:center; justify-content:center; padding:16px }
   .sheet-bg.on { display:flex; animation:fadeIn .18s ease }
   @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
-  .sheet { background:var(--glass); -webkit-backdrop-filter:saturate(200%) blur(36px); backdrop-filter:saturate(200%) blur(36px);
-           border:1px solid var(--border); width:100%; max-width:560px; border-radius:30px 30px 0 0;
-           padding:18px 22px calc(26px + env(safe-area-inset-bottom));
-           box-shadow:var(--spec), 0 -12px 48px rgba(0,0,0,.45);
-           max-height:86vh; overflow-y:auto; animation:slideUp .24s cubic-bezier(.2,.8,.2,1) }
-  @media (min-width:640px) { .sheet-bg { align-items:center; padding:20px } .sheet { border-radius:30px } }
-  @keyframes slideUp { from { transform:translateY(40px) } to { transform:none } }
-  .sheet-handle { width:40px; height:5px; border-radius:99px; background:var(--border); margin:0 auto 14px }
+  .sheet { background:var(--glass);
+           border:1px solid var(--border); width:100%; max-width:520px; border-radius:28px;
+           padding:20px 20px 22px; margin:auto;
+           box-shadow:var(--spec), 0 24px 64px rgba(0,0,0,.65);
+           max-height:84vh; overflow-y:auto; animation:popIn .2s cubic-bezier(.2,.8,.2,1) }
+  @keyframes popIn { from { opacity:0; transform:scale(.95) translateY(8px) } to { opacity:1; transform:none } }
+  .sheet-handle { width:36px; height:4px; border-radius:99px; background:var(--border); margin:0 auto 12px }
   .sheet-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:16px }
   .sheet-top h2 { margin:0; font-size:22px; font-weight:800; letter-spacing:-.02em }
   .kv-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px }
@@ -679,7 +685,7 @@ function render() {
     const avgMeta = sp==='run' && dist ? fmtPace((dur/60)/(dist/1000))+'/km'
                   : sp==='swim' && dist ? fmtPace((dur/60)/(dist/100))+'/100m'
                   : sp==='bike' && dur ? (dist/dur*3.6).toFixed(1)+' km/h' : '';
-    return `<div class="card sport-card">
+    return `<div class="card sport-card tappable" data-sp="${sp}">
       <div class="sport-top">
         <div class="sport-tag"><span class="dot" style="background:${COLORS[sp]};margin:0"></span>${sp}</div>
         <div class="mut">${l.length} ${l.length===1?'session':'sessions'}</div>
@@ -687,7 +693,7 @@ function render() {
       <div class="big">${km(dist)}<small>km</small></div>
       <div class="mut">${hms(dur)}${avgMeta ? ' · avg '+avgMeta : ''}</div>
     </div>`;
-  }).join('') + `<div class="card sport-card">
+  }).join('') + `<div class="card sport-card tappable" data-sp="all">
       <div class="sport-top">
         <div class="sport-tag">Total Volume</div>
         <div class="mut">${inR.length} sessions</div>
@@ -695,6 +701,9 @@ function render() {
       <div class="big">${hms(totalTimeS)}</div>
       <div class="mut">Load ${totalLoad} · ${km(tot(inR,'distance_m'))} km</div>
     </div>`;
+  document.querySelectorAll('#totals .sport-card').forEach(el => {
+    el.onclick = () => openSportDetail(el.dataset.sp, inR, days);
+  });
 
   // 2. Discipline split & weekly target
   const spDur = { swim: tot(sum('swim'),'duration_s'), bike: tot(sum('bike'),'duration_s'), run: tot(sum('run'),'duration_s') };
@@ -789,13 +798,16 @@ function renderCalendar(bricks) {
     const isToday = dt.getTime() === today.getTime();
     const dots = list.map(a => `<i style="background:${COLORS[a.sport]||COLORS.other}"></i>`).join('');
     const brk = bricks.has(iso) ? `<div class="brick-tag">Brick</div>` : '';
-    html += `<div class="cal-day${isToday?' today':''}">
+    html += `<div class="cal-day tappable${isToday?' today':''}" data-iso="${iso}">
       <div class="cal-num">${dt.getDate()}</div>
       <div class="cal-dots">${dots}</div>
       ${brk}
     </div>`;
   }
   $('#calGrid').innerHTML = html;
+  document.querySelectorAll('#calGrid .cal-day').forEach(el => {
+    el.onclick = () => openDateDetail(el.dataset.iso);
+  });
   const brkCnt = [...bricks].filter(d => d >= new Date(startMon.getTime() - startMon.getTimezoneOffset()*60000).toISOString().slice(0,10)).length;
   $('#streakTxt').textContent = `${activeDays}/28 active days${brkCnt ? ` · ${brkCnt} brick` : ''}`;
 
@@ -820,12 +832,15 @@ function renderCalendar(bricks) {
         style = `background:${dom};opacity:${alpha}`;
       }
       const tip = list.length ? `${iso}: ${list.map(a=>a.sport.toUpperCase()).join(' + ')}` : `${iso}: Rest`;
-      hmHtml += `<div class="hm-cell${isToday?' today':''}" style="${style}" title="${tip}"></div>`;
+      hmHtml += `<div class="hm-cell tappable${isToday?' today':''}" data-iso="${iso}" style="${style}" title="${tip}"></div>`;
     }
     hmHtml += `</div>`;
     if (wkHasAct) wkStreak++; else if (w < 11) wkStreak = 0;
   }
   $('#hmGrid').innerHTML = hmHtml;
+  document.querySelectorAll('#hmGrid .hm-cell').forEach(el => {
+    el.onclick = () => openDateDetail(el.dataset.iso);
+  });
   $('#hmStreak').textContent = `${wkStreak}w active streak`;
 }
 
@@ -867,12 +882,15 @@ function renderPMC(days) {
   $('#pmcHint').textContent = formState;
 
   $('#pmcPills').innerHTML = `
-    <div class="pmc-pill"><div class="lbl">Fitness (CTL)</div><div class="val" style="color:${C('--accent')}">${curCTL.toFixed(0)}</div><div class="sub">42d chronic load</div></div>
-    <div class="pmc-pill"><div class="lbl">Fatigue (ATL)</div><div class="val" style="color:${COLORS.run}">${curATL.toFixed(0)}</div><div class="sub">7d acute load</div></div>
-    <div class="pmc-pill"><div class="lbl">Form (TSB)</div><div class="val" style="color:${curTSB>=0?C('--green'):COLORS.bike}">${curTSB>0?'+'+curTSB:curTSB}</div><div class="sub">${formState}</div></div>
-    <div class="pmc-pill"><div class="lbl">7d Ramp Rate</div><div class="val" style="color:${rampCol}">${ramp7d>0?'+'+ramp7d:ramp7d}<small style="font-size:11px;font-weight:600"> /wk</small></div><div class="sub">${rampSub}</div></div>
-    <div class="pmc-pill"><div class="lbl">Workload Ratio</div><div class="val" style="color:${acwrCol}">${acwr.toFixed(2)}</div><div class="sub">${acwrSub}</div></div>
+    <div class="pmc-pill tappable" data-k="ctl"><div class="lbl">Fitness (CTL)</div><div class="val" style="color:${C('--accent')}">${curCTL.toFixed(0)}</div><div class="sub">42d chronic load</div></div>
+    <div class="pmc-pill tappable" data-k="atl"><div class="lbl">Fatigue (ATL)</div><div class="val" style="color:${COLORS.run}">${curATL.toFixed(0)}</div><div class="sub">7d acute load</div></div>
+    <div class="pmc-pill tappable" data-k="tsb"><div class="lbl">Form (TSB)</div><div class="val" style="color:${curTSB>=0?C('--green'):COLORS.bike}">${curTSB>0?'+'+curTSB:curTSB}</div><div class="sub">${formState}</div></div>
+    <div class="pmc-pill tappable" data-k="ramp"><div class="lbl">7d Ramp Rate</div><div class="val" style="color:${rampCol}">${ramp7d>0?'+'+ramp7d:ramp7d}<small style="font-size:11px;font-weight:600"> /wk</small></div><div class="sub">${rampSub}</div></div>
+    <div class="pmc-pill tappable" data-k="acwr"><div class="lbl">Workload Ratio</div><div class="val" style="color:${acwrCol}">${acwr.toFixed(2)}</div><div class="sub">${acwrSub}</div></div>
   `;
+  document.querySelectorAll('#pmcPills .pmc-pill').forEach(el => {
+    el.onclick = () => openPMCDetail(el.dataset.k, { curCTL, curATL, curTSB, ctl7dAgo, ramp7d, acwr, formState, rampSub, acwrSub, ctlArr, atlArr, tsbArr });
+  });
 
   const sliceN = Math.min(dates.length, Math.max(14, days));
   mkChart('pmcChart', {
@@ -896,13 +914,13 @@ function renderGear(g) {
   const shoeKm = acts.filter(a => a.sport==='run' && a.start_time.slice(0,10) >= shoeStart).reduce((s,a)=>s+(a.distance_m||0)/1000, 0);
   const bikeKm = acts.filter(a => a.sport==='bike' && a.start_time.slice(0,10) >= bikeStart).reduce((s,a)=>s+(a.distance_m||0)/1000, 0);
   const items = [
-    { name: g.shoeName || 'Running Shoes', cur: shoeKm, max: +g.shoeMax || 700, col: COLORS.run, sub: g.shoeStart ? `Since ${g.shoeStart}` : 'All logged runs' },
-    { name: g.bikeName || 'Road / TT Bike', cur: bikeKm, max: +g.bikeMax || 2500, col: COLORS.bike, sub: g.bikeStart ? `Since ${g.bikeStart}` : 'All logged rides' }
+    { sp:'run', name: g.shoeName || 'Running Shoes', cur: shoeKm, max: +g.shoeMax || 700, col: COLORS.run, start: shoeStart, sub: g.shoeStart ? `Since ${g.shoeStart}` : 'All logged runs' },
+    { sp:'bike', name: g.bikeName || 'Road / TT Bike', cur: bikeKm, max: +g.bikeMax || 2500, col: COLORS.bike, start: bikeStart, sub: g.bikeStart ? `Since ${g.bikeStart}` : 'All logged rides' }
   ];
-  $('#gearList').innerHTML = items.map(it => {
+  $('#gearList').innerHTML = items.map((it, idx) => {
     const pct = Math.min(100, Math.round(it.cur / it.max * 100));
     const barCol = pct >= 90 ? COLORS.run : pct >= 75 ? COLORS.bike : it.col;
-    return `<div class="gear-row">
+    return `<div class="gear-row tappable" data-idx="${idx}">
       <div class="gear-top">
         <span><b>${it.name}</b> <span class="mut">· ${it.sub}</span></span>
         <span style="font-weight:700;font-variant-numeric:tabular-nums">${it.cur.toFixed(0)} / ${it.max} km (${pct}%)</span>
@@ -910,6 +928,9 @@ function renderGear(g) {
       <div class="bar"><i style="width:${pct}%;background:${barCol}"></i></div>
     </div>`;
   }).join('');
+  document.querySelectorAll('#gearList .gear-row').forEach(el => {
+    el.onclick = () => openGearDetail(items[+el.dataset.idx]);
+  });
 }
 
 function renderCoachBanner(pmc, rec, wkHrs, goalHrs) {
@@ -1007,23 +1028,35 @@ function renderPerformance(inR) {
     </div>`;
   }).join('');
 
-  // 2. Personal Bests & Key Metrics in range
+  // 2. Personal Bests & Key Metrics in range (tappable to view the exact workout)
   const runs = inR.filter(a=>a.sport==='run' && a.distance_m>500 && a.duration_s);
   const bikes = inR.filter(a=>a.sport==='bike' && a.distance_m>1000 && a.duration_s);
   const swims = inR.filter(a=>a.sport==='swim' && a.distance_m>100 && a.duration_s);
-  const bestRunPace = runs.length ? Math.min(...runs.map(a=>(a.duration_s/60)/(a.distance_m/1000))) : null;
-  const bestBikeSpd = bikes.length ? Math.max(...bikes.map(a=>a.distance_m/a.duration_s*3.6)) : null;
-  const bestSwimPace = swims.length ? Math.min(...swims.map(a=>(a.duration_s/60)/(a.distance_m/100))) : null;
-  const maxDist = sp => { const l = inR.filter(a=>a.sport===sp); return l.length ? km(Math.max(...l.map(a=>a.distance_m||0)))+' km' : '–'; };
+  const minBy = (arr, fn) => arr.length ? arr.reduce((b,a)=>fn(a)<fn(b)?a:b, arr[0]) : null;
+  const maxBy = (arr, fn) => arr.length ? arr.reduce((b,a)=>fn(a)>fn(b)?a:b, arr[0]) : null;
+  const fRun = minBy(runs, a=>(a.duration_s/60)/(a.distance_m/1000));
+  const fBike = maxBy(bikes, a=>a.distance_m/a.duration_s*3.6);
+  const fSwim = minBy(swims, a=>(a.duration_s/60)/(a.distance_m/100));
+  const lRun = maxBy(inR.filter(a=>a.sport==='run'), a=>a.distance_m||0);
+  const lBike = maxBy(inR.filter(a=>a.sport==='bike'), a=>a.distance_m||0);
+  const lSwim = maxBy(inR.filter(a=>a.sport==='swim'), a=>a.distance_m||0);
 
-  $('#prGrid').innerHTML = `
-    <div class="kv"><div class="k">Fastest Run Avg</div><div class="v">${bestRunPace ? fmtPace(bestRunPace)+'/km' : '–'}</div></div>
-    <div class="kv"><div class="k">Fastest Bike Avg</div><div class="v">${bestBikeSpd ? bestBikeSpd.toFixed(1)+' km/h' : '–'}</div></div>
-    <div class="kv"><div class="k">Fastest Swim Avg</div><div class="v">${bestSwimPace ? fmtPace(bestSwimPace)+'/100m' : '–'}</div></div>
-    <div class="kv"><div class="k">Longest Run</div><div class="v">${maxDist('run')}</div></div>
-    <div class="kv"><div class="k">Longest Ride</div><div class="v">${maxDist('bike')}</div></div>
-    <div class="kv"><div class="k">Longest Swim</div><div class="v">${maxDist('swim')}</div></div>
-  `;
+  const prTile = (lbl, val, act) => `<div class="kv${act?' tappable':''}" ${act?`data-id="${act.summary_id}"`:''}>
+    <div class="k">${lbl}</div>
+    <div class="v">${val}</div>
+    ${act ? `<div class="mut" style="font-size:10.5px;margin-top:2px">${act.start_time.slice(5,10)} · Tap to inspect</div>` : ''}
+  </div>`;
+
+  $('#prGrid').innerHTML =
+      prTile('Fastest Run Avg', fRun ? fmtPace((fRun.duration_s/60)/(fRun.distance_m/1000))+'/km' : '–', fRun)
+    + prTile('Fastest Bike Avg', fBike ? (fBike.distance_m/fBike.duration_s*3.6).toFixed(1)+' km/h' : '–', fBike)
+    + prTile('Fastest Swim Avg', fSwim ? fmtPace((fSwim.duration_s/60)/(fSwim.distance_m/100))+'/100m' : '–', fSwim)
+    + prTile('Longest Run', lRun ? km(lRun.distance_m)+' km' : '–', lRun)
+    + prTile('Longest Ride', lBike ? km(lBike.distance_m)+' km' : '–', lBike)
+    + prTile('Longest Swim', lSwim ? km(lSwim.distance_m)+' km' : '–', lSwim);
+  document.querySelectorAll('#prGrid .kv[data-id]').forEach(el => {
+    el.onclick = () => openActivitySheet(el.dataset.id);
+  });
 
   // 3. Aerobic Efficiency Factor (Speed in m/min divided by Avg HR)
   const efActs = acts.filter(a => (a.sport==='run' || a.sport==='bike') && a.distance_m>1000 && a.duration_s && a.avg_hr);
@@ -1087,7 +1120,7 @@ function renderRecovery(days) {
         cls = good; delta = (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d).toFixed(Math.abs(d) < 10 ? 1 : 0) + ' vs 28d avg';
       } else if (!has) delta = 'No data';
       const bar = has && pct != null ? `<div class="bar"><i style="width:${Math.max(0, Math.min(100, pct))}%;background:${color}"></i></div>` : '';
-      return `<div class="tile"><div class="tl">${label}</div><div class="tv">${has ? v : '–'}${has && unit ? `<small>${unit}</small>` : ''}</div>${bar}<div class="td ${cls}">${delta}</div></div>`;
+      return `<div class="tile tappable" data-rk="${k||'sleep_s'}"><div class="tl">${label}</div><div class="tv">${has ? v : '–'}${has && unit ? `<small>${unit}</small>` : ''}</div>${bar}<div class="td ${cls}">${delta}</div></div>`;
     };
     $('#recTiles').innerHTML =
         tile('HRV', last.hrv_night_avg ? Math.round(last.hrv_night_avg) : null, 'ms', 'hrv_night_avg', 1)
@@ -1095,6 +1128,9 @@ function renderRecovery(days) {
       + tile('Sleep', last.sleep_s ? hms(last.sleep_s) : null, '', null, 0)
       + tile('Sleep score', last.sleep_score ?? null, '/100', 'sleep_score', 1, last.sleep_score, C('--indigo'))
       + tile('Body Battery', last.body_battery_high ?? null, '/100', 'body_battery_high', 1, last.body_battery_high, C('--swim'));
+    document.querySelectorAll('#recTiles .tile').forEach(el => {
+      el.onclick = () => openRecDetail(el.dataset.rk);
+    });
   }
 
   mkChart('hrvChart', {type:'line', data:{labels, datasets:[
@@ -1180,6 +1216,159 @@ function actHRZones(a) {
     return { native: false, sec: w.map(x => Math.round(x * a.duration_s)) };
   }
   return { native: false, sec: [0,0,0,0,0] };
+}
+
+function showDetailSheet(sub, titleHtml, items, extraHtml = '') {
+  $('#shDate').textContent = sub;
+  $('#shTitle').innerHTML = titleHtml;
+  $('#shGrid').innerHTML = items.map(([k,v]) => `<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  $('#shZones').innerHTML = extraHtml;
+  $('#shZones').querySelectorAll('[data-act-id]').forEach(el => {
+    el.onclick = () => openActivitySheet(el.dataset.actId);
+  });
+  $('#actSheet').classList.add('on');
+}
+
+function openSportDetail(sp, inR, days) {
+  const list = sp === 'all' ? inR : inR.filter(a => a.sport === sp);
+  const label = sp === 'all' ? 'All Disciplines' : sp.toUpperCase();
+  const col = sp === 'all' ? C('--accent') : COLORS[sp];
+  const dist = list.reduce((s,a)=>s+(a.distance_m||0), 0);
+  const dur = list.reduce((s,a)=>s+(a.duration_s||0), 0);
+  const load = list.reduce((s,a)=>s+actLoad(a), 0);
+  const cals = list.reduce((s,a)=>s+(a.calories||0), 0);
+  const hrs = list.filter(a=>a.avg_hr);
+  const avgHr = hrs.length ? Math.round(hrs.reduce((s,a)=>s+a.avg_hr,0)/hrs.length) + ' bpm' : '–';
+  const avgSpd = sp==='run' && dist ? fmtPace((dur/60)/(dist/1000))+' /km'
+               : sp==='swim' && dist ? fmtPace((dur/60)/(dist/100))+' /100m'
+               : sp==='bike' && dur ? (dist/dur*3.6).toFixed(1)+' km/h'
+               : (dur ? (dist/1000/(dur/3600)).toFixed(1)+' km/h' : '–');
+  const recentRows = [...list].reverse().slice(0, 5).map(a => `
+    <div class="ring-row tappable" data-act-id="${a.summary_id}" style="padding:7px 8px;border-radius:10px;background:var(--fill)">
+      <span><span class="dot" style="background:${COLORS[a.sport]}"></span><b>${a.raw?.activityName || a.sport.toUpperCase()}</b> <span class="mut">(${a.start_time.slice(5,10)})</span></span>
+      <span>${km(a.distance_m||0)} km · ${hms(a.duration_s)}</span>
+    </div>`).join('');
+  const extra = recentRows ? `<div class="fuel-box" style="margin-top:4px">
+    <div class="fuel-hd"><span>Recent Sessions (Tap to view workout)</span><span>${list.length} total</span></div>
+    <div style="display:grid;gap:6px">${recentRows}</div>
+  </div>` : '';
+  showDetailSheet(
+    `Last ${days} days summary`,
+    `<span class="dot" style="background:${col};width:11px;height:11px"></span>${label}`,
+    [
+      ['Total Distance', km(dist) + ' km'],
+      ['Total Duration', hms(dur)],
+      ['Sessions', String(list.length)],
+      ['Avg Pace / Speed', avgSpd],
+      ['Avg Heart Rate', avgHr],
+      ['Total Load', String(load)],
+      ['Avg Dist / Session', list.length ? km(dist/list.length)+' km' : '–'],
+      ['Avg Time / Session', list.length ? hms(dur/list.length) : '–'],
+      ['Total Calories', cals ? cals+' kcal' : '–']
+    ],
+    extra
+  );
+}
+
+function openDateDetail(iso) {
+  const dayActs = acts.filter(a => a.start_time.slice(0,10) === iso);
+  const h = health.find(x => x.calendar_date === iso);
+  if (dayActs.length === 1 && !h) return openActivitySheet(dayActs[0].summary_id);
+  const totDist = dayActs.reduce((s,a)=>s+(a.distance_m||0), 0);
+  const totDur = dayActs.reduce((s,a)=>s+(a.duration_s||0), 0);
+  const totLoad = dayActs.reduce((s,a)=>s+actLoad(a), 0);
+  const items = [
+    ['Workouts', String(dayActs.length)],
+    ['Total Time', totDur ? hms(totDur) : 'Rest Day'],
+    ['Total Distance', totDist ? km(totDist)+' km' : '0.0 km'],
+    ['Day Load', String(totLoad)],
+    ['Overnight HRV', h?.hrv_night_avg ? Math.round(h.hrv_night_avg)+' ms' : '–'],
+    ['Resting HR', h?.resting_hr ? h.resting_hr+' bpm' : '–'],
+    ['Sleep', h?.sleep_s ? hms(h.sleep_s) : '–'],
+    ['Sleep Score', h?.sleep_score != null ? h.sleep_score+'/100' : '–'],
+    ['Body Battery', h?.body_battery_high != null ? `${h.body_battery_high} / ${h.body_battery_low ?? '–'}` : '–']
+  ];
+  const actRows = dayActs.map(a => `
+    <div class="ring-row tappable" data-act-id="${a.summary_id}" style="padding:8px 10px;border-radius:10px;background:var(--fill)">
+      <span><span class="dot" style="background:${COLORS[a.sport]}"></span><b>${a.raw?.activityName || a.sport.toUpperCase()}</b></span>
+      <span>${km(a.distance_m||0)} km · ${hms(a.duration_s)} · ${fmtSportSpeed(a)}</span>
+    </div>`).join('');
+  const extra = actRows ? `<div class="fuel-box" style="margin-top:4px">
+    <div class="fuel-hd"><span>Workouts on ${iso} (Tap for full details)</span></div>
+    <div style="display:grid;gap:6px">${actRows}</div>
+  </div>` : '';
+  showDetailSheet('Daily Summary', iso, items, extra);
+}
+
+function openPMCDetail(k, d) {
+  const c28 = d.ctlArr[Math.max(0, d.ctlArr.length-29)] || 0;
+  const meta = {
+    ctl:  ['Chronic Training Load (42-Day)', 'Fitness (CTL)', 'Measures your long-term aerobic base built over the last 6 weeks. Aim to build by +3 to +5 points per week during build blocks.'],
+    atl:  ['Acute Training Load (7-Day)', 'Fatigue (ATL)', 'Measures short-term physiological strain from the past 7 days. High ATL builds fitness once followed by recovery.'],
+    tsb:  ['Training Stress Balance (CTL − ATL)', 'Form (TSB)', 'Optimal daily training sits between −10 and −25. For race day or A-priority tests, taper until Form reaches +5 to +15.'],
+    ramp: ['7-Day Fitness Ramp Rate', 'Ramp Rate', 'Rate of weekly CTL growth. Sweet spot is +2 to +6 pts/week. Exceeding +7 pts/week significantly increases overreaching & injury risk.'],
+    acwr: ['Acute : Chronic Workload Ratio', 'Workload Ratio (ACWR)', 'Ratio of 7-day Fatigue (ATL) to 42-day Fitness (CTL). Sweet spot is 0.80–1.30. Above 1.50 signals a sudden load spike.']
+  }[k] || ['Performance Management', 'PMC Metric', ''];
+  showDetailSheet(
+    meta[0],
+    meta[1],
+    [
+      ['Fitness (CTL)', d.curCTL.toFixed(1)],
+      ['Fatigue (ATL)', d.curATL.toFixed(1)],
+      ['Form (TSB)', (d.curTSB>0?'+':'')+d.curTSB],
+      ['7d Ramp Rate', (d.ramp7d>0?'+':'')+d.ramp7d+' /wk'],
+      ['Workload Ratio', d.acwr.toFixed(2)],
+      ['CTL 7d Ago', d.ctl7dAgo.toFixed(1)],
+      ['CTL 28d Ago', c28.toFixed(1)],
+      ['28d CTL Gain', ((d.curCTL-c28)>=0?'+':'')+(d.curCTL-c28).toFixed(1)],
+      ['Status', d.formState]
+    ],
+    `<div class="fuel-box" style="margin-top:4px"><div class="fuel-hd"><span>Coaching Guide</span></div><div style="font-size:13px;line-height:1.45">${meta[2]}</div></div>`
+  );
+}
+
+function openGearDetail(it) {
+  const list = acts.filter(a => a.sport === it.sp && a.start_time.slice(0,10) >= it.start);
+  const totDur = list.reduce((s,a)=>s+(a.duration_s||0), 0);
+  const remKm = Math.max(0, it.max - it.cur);
+  const pct = Math.min(100, Math.round(it.cur / it.max * 100));
+  showDetailSheet(
+    it.sub,
+    `<span class="dot" style="background:${it.col};width:11px;height:11px"></span>${it.name}`,
+    [
+      ['Distance Logged', it.cur.toFixed(1) + ' km'],
+      ['Service / Max Limit', it.max + ' km'],
+      ['Remaining Life', remKm.toFixed(0) + ' km'],
+      ['Wear Percentage', pct + '%'],
+      ['Total Sessions', String(list.length)],
+      ['Total Hours', hms(totDur)]
+    ],
+    `<div class="fuel-box" style="margin-top:4px"><div class="fuel-hd"><span>Maintenance Status</span></div><div style="font-size:13px">${pct >= 90 ? 'Service or replacement recommended soon.' : pct >= 75 ? 'Approaching final 25% of target mileage.' : 'Gear is in good mileage range.'}</div></div>`
+  );
+}
+
+function openRecDetail(k) {
+  const last = health[health.length-1];
+  if (!last) return;
+  const vals = (arr, key) => arr.map(h=>h[key]).filter(v=>v!=null);
+  const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
+  const v7 = vals(health.slice(-7), k), v28 = vals(health.slice(-28), k);
+  const fmt = v => v == null ? '–' : k === 'sleep_s' ? hms(v) : Math.round(v);
+  const titles = { hrv_night_avg:'Overnight HRV (ms)', resting_hr:'Resting Heart Rate (bpm)', sleep_s:'Sleep Duration & Stages', sleep_score:'Garmin Sleep Score', body_battery_high:'Body Battery Reserve' };
+  const items = [
+    ['Latest ('+last.calendar_date.slice(5)+')', fmt(last[k])],
+    ['7-Day Avg', fmt(avg(v7))],
+    ['28-Day Baseline', fmt(avg(v28))],
+    ['28-Day High', v28.length ? fmt(Math.max(...v28)) : '–'],
+    ['28-Day Low', v28.length ? fmt(Math.min(...v28)) : '–'],
+    ['Overnight 5m High', last.hrv_5min_high ? Math.round(last.hrv_5min_high)+' ms' : (last.avg_stress ? 'Stress '+last.avg_stress : '–')]
+  ];
+  if (last.deep_s || last.rem_s || last.light_s) {
+    items.push(['Deep Sleep', last.deep_s ? hms(last.deep_s) : '–']);
+    items.push(['REM Sleep', last.rem_s ? hms(last.rem_s) : '–']);
+    items.push(['Light Sleep', last.light_s ? hms(last.light_s) : '–']);
+  }
+  showDetailSheet('Recovery & Autonomic Health', titles[k] || 'Recovery Metric', items);
 }
 
 function openActivitySheet(id) {
