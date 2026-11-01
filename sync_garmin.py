@@ -14,17 +14,6 @@ WEBHOOK = "https://euwbsqptvfxbpebgnmak.functions.supabase.co/garmin-webhook"
 TOKENS = os.path.expanduser("~/.garminconnect")  # cached login so you rarely re-auth
 days = int(sys.argv[1]) if len(sys.argv) > 1 else 7
 
-email = os.environ.get("GARMIN_EMAIL", "")
-have_tokens = os.path.isdir(TOKENS) and os.listdir(TOKENS)
-if not have_tokens and ("@" not in email or "your" in email.lower() or "<" in email):
-    sys.exit("First run: set GARMIN_EMAIL and GARMIN_PASSWORD to your REAL Garmin login (no < > brackets).")
-api = Garmin(email, os.environ.get("GARMIN_PASSWORD"),
-             prompt_mfa=lambda: input("Garmin 2FA code: "))
-api.login(TOKENS)   # reuses cached tokens if present, else logs in and saves them there
-
-today = dt.date.today()
-start = today - dt.timedelta(days=days)
-
 def webhook_secret():
     # GitHub Actions passes it as an env var; on your Mac it is read from a private file.
     s = os.environ.get("WEBHOOK_SECRET")
@@ -41,6 +30,26 @@ def post(payload):
         return urllib.request.urlopen(req, timeout=60).read().decode()
     except urllib.error.HTTPError as e:
         sys.exit(f"Webhook error {e.code}: {e.read().decode()}")
+
+email = os.environ.get("GARMIN_EMAIL", "")
+have_tokens = os.path.isfile(os.path.join(TOKENS, "garmin_tokens.json"))
+if not have_tokens and ("@" not in email or "your" in email.lower() or "<" in email):
+    sys.exit("First run: set GARMIN_EMAIL and GARMIN_PASSWORD to your REAL Garmin login (no < > brackets).")
+api = Garmin(email, os.environ.get("GARMIN_PASSWORD"),
+             prompt_mfa=lambda: input("Garmin 2FA code: "))
+try:
+    api.login(TOKENS if have_tokens else None)
+except Exception:
+    # If cached token was revoked/expired and credentials were provided, do a fresh login
+    if "@" in email and os.environ.get("GARMIN_PASSWORD"):
+        api.login(None)
+    else:
+        raise
+os.makedirs(TOKENS, exist_ok=True)
+api.client.dump(TOKENS)
+
+today = dt.date.today()
+start = today - dt.timedelta(days=days)
 
 def ri(v):  # DB integer columns reject decimals like 1834.7
     return None if v is None else int(round(v))

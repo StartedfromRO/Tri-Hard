@@ -28,4 +28,6 @@ jobs:
       - name: Pull last 2 days
         env:
           WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
+          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
         run: python sync_garmin.py 2
