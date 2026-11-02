@@ -1,7 +1,10 @@
 name: Sync Garmin
 
 on:
-  workflow_dispatch:           # runs only when triggered: the app's Sync button, or manually from the Actions tab
+  workflow_dispatch:           # runs when triggered: the app's Sync button, or manually from the Actions tab
+  schedule:
+    - cron: '30 23 * * *'      # 07:30 AM MYT (UTC+8) — morning sleep, HRV & readiness sync
+    - cron: '30 12 * * *'      # 08:30 PM MYT (UTC+8) — evening workout & load sync
 
 concurrency:
   group: garmin-sync

@@ -214,6 +214,33 @@
   tbody tr:hover, tbody tr:active { background:var(--fill) }
   tr:last-child td { border-bottom:0 }
   .badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:99px; margin-left:6px; background:rgba(255,149,0,.20); border:1px solid rgba(255,149,0,.35); color:var(--bike); text-transform:uppercase }
+  .badge-pr { background:rgba(250,204,21,.22); border-color:rgba(250,204,21,.45); color:var(--yellow) }
+
+  /* Taper & Compliance Tracker */
+  .taper-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px }
+  @media (min-width:640px) { .taper-grid { grid-template-columns:repeat(4,1fr) } }
+  .taper-wk { background:var(--card2); border:1px solid var(--border); box-shadow:var(--spec); border-radius:16px; padding:11px 12px; display:flex; flex-direction:column; gap:5px }
+  .taper-wk.cur { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent), var(--spec) }
+  .taper-top { display:flex; justify-content:space-between; align-items:center; font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--mut) }
+  .taper-val { font-size:17px; font-weight:800; font-variant-numeric:tabular-nums }
+  .chk-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:7px; margin-top:10px; padding-top:10px; border-top:1px solid var(--sep) }
+  .chk-item { display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; padding:7px 10px; border-radius:12px; background:var(--card2); border:1px solid var(--border); cursor:pointer; user-select:none }
+  .chk-item.done { opacity:.65; text-decoration:line-through }
+  .chk-box { width:16px; height:16px; border-radius:5px; border:1.5px solid var(--mut); display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; flex-shrink:0 }
+  .chk-item.done .chk-box { background:var(--green); border-color:var(--green); color:#fff }
+
+  /* Pacing & Trophy Controls */
+  .pace-slider-row { display:flex; align-items:center; gap:12px; margin-top:12px; padding-top:12px; border-top:1px solid var(--sep); flex-wrap:wrap }
+  .pace-slider-row input[type="range"] { flex:1; min-width:140px; accent-color:var(--accent); cursor:pointer }
+  .pace-plan-grid { display:grid; grid-template-columns:1fr; gap:8px; margin-top:10px }
+  @media (min-width:640px) { .pace-plan-grid { grid-template-columns:repeat(3,1fr) } }
+  .pace-leg { background:var(--card2); border:1px solid var(--border); box-shadow:var(--spec); border-radius:16px; padding:11px 13px }
+  .pace-leg-hd { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; display:flex; justify-content:space-between }
+  .pace-leg-main { font-size:16px; font-weight:800; font-variant-numeric:tabular-nums }
+  .pace-leg-sub { font-size:11.5px; color:var(--mut); margin-top:3px; line-height:1.35 }
+  .mini-seg { display:inline-flex; gap:3px; padding:3px; border-radius:99px; background:var(--card2); border:1px solid var(--border) }
+  .mini-seg button { padding:4px 10px; font-size:11px; border:0; background:transparent; box-shadow:none; color:var(--mut) }
+  .mini-seg button.on { background:var(--txt); color:var(--bg) }
 
   /* Centered Detail Modal (Activity detail, Metric drill-downs + Race/Goal settings) */
   .sheet-bg { display:none; position:fixed; inset:0; z-index:40; background:rgba(4,6,14,.82);
@@ -361,6 +388,13 @@
       <canvas id="pmcChart" height="150"></canvas>
     </div>
 
+    <div class="card" id="taperCard">
+      <div class="card-hd"><b>Taper &amp; Plan vs. Actual Compliance</b><span id="taperSub"></span></div>
+      <div class="taper-grid" id="taperGrid"></div>
+      <div class="mut" style="font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;margin-top:6px">Race-Week &amp; Taper Readiness Checklist</div>
+      <div class="chk-grid" id="taperChecks"></div>
+    </div>
+
     <div class="card">
       <div class="card-hd"><b>Gear &amp; Shoe Mileage Tracker</b><button id="editGearBtn" style="font-size:11px;padding:4px 10px">Configure Gear</button></div>
       <div id="gearList"></div>
@@ -370,7 +404,7 @@
   <!-- PERFORMANCE -->
   <section id="t-perf" class="tab">
     <div class="card">
-      <div class="card-hd"><b>Triathlon Race Time Predictor</b><span>Estimated from your recent paces + endurance decay</span></div>
+      <div class="card-hd"><b>Triathlon Race Time Predictor &amp; Pacing Plan</b><span id="predSub">Estimated from your recent paces + endurance decay</span></div>
       <div class="pred-tabs" id="predTabs">
         <button data-d="sprint">Sprint</button>
         <button data-d="olympic">Olympic</button>
@@ -378,6 +412,13 @@
         <button data-d="140.6">Full (140.6)</button>
       </div>
       <div class="kv-grid" id="predGrid" style="margin-bottom:0"></div>
+      <div class="pace-slider-row">
+        <span style="font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.04em">Pacing Target Mode</span>
+        <input id="paceSlider" type="range" min="-15" max="15" step="1" value="0">
+        <span id="paceSliderLbl" style="font-size:12.5px;font-weight:800;min-width:135px;text-align:right;font-variant-numeric:tabular-nums">Fitness Default (0%)</span>
+        <button id="paceResetBtn" type="button" style="padding:4px 10px;font-size:11px">Reset</button>
+      </div>
+      <div class="pace-plan-grid" id="pacePlanGrid"></div>
       <div class="fuel-box" id="fuelBar"></div>
     </div>
 
@@ -387,13 +428,20 @@
         <div id="zoneBars"></div>
       </div>
       <div class="card">
-        <div class="card-hd"><b>Personal Bests &amp; Key Metrics</b><span>In selected range</span></div>
+        <div class="card-hd">
+          <b>Trophy Cabinet &amp; Personal Records</b>
+          <div class="mini-seg" id="prScopeSeg">
+            <button data-sc="all" class="on">All-Time</button>
+            <button data-sc="range">In Range</button>
+          </div>
+        </div>
         <div class="kv-grid" id="prGrid" style="margin-bottom:0"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-hd"><b>Aerobic Efficiency Trend (Speed vs Heart Rate)</b><span>Higher = fitter at same HR</span></div>
+      <div class="card-hd"><b>Aerobic Efficiency &amp; Decoupling Trend (EF = Speed ÷ HR)</b><span id="efGainPill">Higher = fitter at same HR</span></div>
+      <div class="pmc-pills" id="efPills" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px"></div>
       <canvas id="efChart" height="140"></canvas>
     </div>
 
@@ -525,13 +573,14 @@ Chart.defaults.plugins.legend.labels.boxHeight = 7;
 Chart.defaults.plugins.legend.labels.padding = 16;
 Chart.defaults.color = C('--mut');
 const $ = s => document.querySelector(s);
-let acts = [], health = [], charts = {}, logSportFilter = 'all', predDist = '70.3', cloudGoals = null;
+let acts = [], health = [], charts = {}, logSportFilter = 'all', predDist = '70.3', prScope = 'all', paceShiftPct = 0, cloudGoals = null;
 
 const DEFAULT_GOALS = {
   raceName: '70.3 Race Day', raceDate: '', wkHrs: 8,
   wkSwimKm: 3, wkBikeKm: 100, wkRunKm: 25,
   shoeName: 'Daily Running Shoes', shoeStart: '', shoeMax: 700,
-  bikeName: 'Tri / Road Bike', bikeStart: '', bikeMax: 2500
+  bikeName: 'Tri / Road Bike', bikeStart: '', bikeMax: 2500,
+  taperChecks: {}
 };
 
 function getGoals() {
@@ -763,6 +812,9 @@ function render() {
   // 5. Fitness / Fatigue / Form (PMC)
   const pmcNow = renderPMC(days);
 
+  // 5b. Taper & Plan vs. Actual Compliance Tracker
+  renderTaper(g, pmcNow);
+
   // 6. Gear & Shoe Mileage Tracker
   renderGear(g);
 
@@ -907,6 +959,97 @@ function renderPMC(days) {
   return { ctl: curCTL, atl: curATL, tsb: curTSB, state: formState };
 }
 
+function renderTaper(g, pmc) {
+  const baseHrs = +g.wkHrs || 8;
+  const todayMon = mondayOf(new Date());
+  const wkHrsMap = {};
+  acts.forEach(a => {
+    const k = mondayOf(a.start_time).toISOString().slice(0,10);
+    wkHrsMap[k] = (wkHrsMap[k] || 0) + (a.duration_s || 0) / 3600;
+  });
+
+  // Determine 4-week block leading up to race week (if raceDate set within 42d) or last 4 weeks
+  const raceDiff = g.raceDate ? Math.ceil((new Date(g.raceDate + 'T00:00:00') - new Date()) / 864e5) : null;
+  let weeksMeta = [];
+  if (raceDiff != null && raceDiff >= -7 && raceDiff <= 35) {
+    const raceMon = mondayOf(new Date(g.raceDate + 'T00:00:00'));
+    const mults = [
+      { off: -3, lbl: 'W-3 Peak',   mult: 1.05 },
+      { off: -2, lbl: 'W-2 Sharpen', mult: 0.85 },
+      { off: -1, lbl: 'W-1 Taper',  mult: 0.65 },
+      { off:  0, lbl: 'Race Week',  mult: 0.40 }
+    ];
+    weeksMeta = mults.map(m => {
+      const dt = new Date(raceMon.getTime() + m.off * 7 * 864e5);
+      const iso = dt.toISOString().slice(0,10);
+      return { iso, lbl: m.lbl, target: +(baseHrs * m.mult).toFixed(1), actual: +(wkHrsMap[iso] || 0).toFixed(1), isCur: iso === todayMon.toISOString().slice(0,10) };
+    });
+  } else {
+    for (let i = -3; i <= 0; i++) {
+      const dt = new Date(todayMon.getTime() + i * 7 * 864e5);
+      const iso = dt.toISOString().slice(0,10);
+      weeksMeta.push({ iso, lbl: i === 0 ? 'This Week' : `W${i} (${iso.slice(5)})`, target: baseHrs, actual: +(wkHrsMap[iso] || 0).toFixed(1), isCur: i === 0 });
+    }
+  }
+
+  const tsb = pmc?.tsb ?? 0;
+  const taperTargetTxt = (raceDiff != null && raceDiff >= 0 && raceDiff <= 21)
+    ? `Race in ${raceDiff}d · Form ${tsb>0?'+'+tsb:tsb} (Target +5 to +15)`
+    : `Weekly Target ${baseHrs}h · Form ${tsb>0?'+'+tsb:tsb}`;
+  $('#taperSub').textContent = taperTargetTxt;
+
+  $('#taperGrid').innerHTML = weeksMeta.map((w, idx) => {
+    const pct = Math.min(130, Math.round(w.actual / (w.target || 1) * 100));
+    const col = (pct >= 80 && pct <= 115) ? C('--green') : pct > 115 ? COLORS.bike : C('--accent');
+    return `<div class="taper-wk tappable${w.isCur ? ' cur' : ''}" data-widx="${idx}">
+      <div class="taper-top"><span>${w.lbl}</span><span>${pct}%</span></div>
+      <div class="taper-val">${w.actual} <small class="mut" style="font-size:12px;font-weight:600">/ ${w.target}h</small></div>
+      <div class="bar"><i style="width:${Math.min(100, pct)}%;background:${col}"></i></div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#taperGrid .taper-wk').forEach(el => {
+    const w = weeksMeta[+el.dataset.widx];
+    el.onclick = () => showDetailSheet(
+      `Week of ${w.iso}`,
+      w.lbl + ' Compliance',
+      [
+        ['Completed Volume', w.actual + ' hrs'],
+        ['Planned Target', w.target + ' hrs'],
+        ['Compliance', Math.round(w.actual / (w.target || 1) * 100) + '%'],
+        ['Current Form (TSB)', (tsb>0?'+':'') + tsb],
+        ['Target Race Form', '+5 to +15 TSB'],
+        ['Phase Guidance', w.lbl.includes('Taper') || w.lbl.includes('Race') ? 'Cut volume, keep short race-pace pickups' : 'Maintain steady aerobic volume & brick consistency']
+      ]
+    );
+  });
+
+  const checklist = [
+    { id: 'c_brick', lbl: 'Final Race-Pace Brick Completed' },
+    { id: 'c_fuel',  lbl: 'Race Nutrition & Gels Tested (80g/hr)' },
+    { id: 'c_bike',  lbl: 'Bike Drivetrain, Tires & Bolts Checked' },
+    { id: 'c_wetsuit', lbl: 'Swim Gear / Goggles / Trisuit Packed' },
+    { id: 'c_carb',  lbl: '48h Pre-Race Carb Load & Electrolytes' },
+    { id: 'c_tsb',   lbl: `Form (TSB) Fresh (>0) · Now ${tsb>0?'+'+tsb:tsb}` }
+  ];
+  const savedChk = g.taperChecks || {};
+  $('#taperChecks').innerHTML = checklist.map(c => {
+    const done = !!savedChk[c.id];
+    return `<div class="chk-item${done ? ' done' : ''}" data-cid="${c.id}">
+      <span class="chk-box">${done ? '✓' : ''}</span>
+      <span>${c.lbl}</span>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#taperChecks .chk-item').forEach(el => {
+    el.onclick = () => {
+      const cur = getGoals();
+      const nextChecks = { ...(cur.taperChecks || {}) };
+      const id = el.dataset.cid;
+      nextChecks[id] = !nextChecks[id];
+      setGoals({ ...cur, taperChecks: nextChecks });
+    };
+  });
+}
+
 function renderGear(g) {
   const shoeStart = g.shoeStart || '2000-01-01';
   const bikeStart = g.bikeStart || '2000-01-01';
@@ -953,13 +1096,30 @@ function renderCoachBanner(pmc, rec, wkHrs, goalHrs) {
   $('#coachTxt').textContent = msg;
 }
 
+function getAllTimePRIds() {
+  const minBy = (arr, fn) => arr.length ? arr.reduce((b,a)=>fn(a)<fn(b)?a:b, arr[0]) : null;
+  const maxBy = (arr, fn) => arr.length ? arr.reduce((b,a)=>fn(a)>fn(b)?a:b, arr[0]) : null;
+  const runs = acts.filter(a=>a.sport==='run' && a.distance_m>=3000 && a.duration_s);
+  const bikes = acts.filter(a=>a.sport==='bike' && a.distance_m>=10000 && a.duration_s);
+  const swims = acts.filter(a=>a.sport==='swim' && a.distance_m>=400 && a.duration_s);
+  const out = new Map();
+  const add = (a, tag) => { if (a) out.set(String(a.summary_id), tag); };
+  add(minBy(runs, a=>(a.duration_s/60)/(a.distance_m/1000)), 'PR Run Pace');
+  add(maxBy(bikes, a=>a.distance_m/a.duration_s*3.6), 'PR Bike Spd');
+  add(minBy(swims, a=>(a.duration_s/60)/(a.distance_m/100)), 'PR Swim Pace');
+  add(maxBy(acts.filter(a=>a.sport==='run'), a=>a.distance_m||0), 'Longest Run');
+  add(maxBy(acts.filter(a=>a.sport==='bike'), a=>a.distance_m||0), 'Longest Ride');
+  add(maxBy(acts.filter(a=>a.sport==='swim'), a=>a.distance_m||0), 'Longest Swim');
+  return out;
+}
+
 function renderPerformance(inR) {
-  // 0. Race Time Predictor (Sprint, Olympic, 70.3, 140.6)
+  // 0. Race Time Predictor & Pacing Plan (Sprint, Olympic, 70.3, 140.6)
   const specs = {
-    'sprint':  { s:750,  b:20000,  r:5000,  t:180, f:0.97 },
-    'olympic': { s:1500, b:40000,  r:10000, t:270, f:1.00 },
-    '70.3':    { s:1900, b:90000,  r:21097, t:390, f:1.06 },
-    '140.6':   { s:3800, b:180000, r:42195, t:600, f:1.14 }
+    'sprint':  { s:750,  b:20000,  r:5000,  t:180, f:0.97, lbl:'Sprint Triathlon' },
+    'olympic': { s:1500, b:40000,  r:10000, t:270, f:1.00, lbl:'Olympic Distance' },
+    '70.3':    { s:1900, b:90000,  r:21097, t:390, f:1.06, lbl:'Half Ironman 70.3' },
+    '140.6':   { s:3800, b:180000, r:42195, t:600, f:1.14, lbl:'Full Ironman 140.6' }
   }[predDist];
 
   const allSwims = acts.filter(a=>a.sport==='swim' && a.distance_m>200 && a.duration_s);
@@ -972,22 +1132,58 @@ function renderPerformance(inR) {
     const spds = list.map(a => a.distance_m / a.duration_s).sort((a,b)=>b-a);
     return spds[Math.min(spds.length-1, Math.floor(spds.length * 0.35))];
   };
-  const swimMps = medSpd(allSwims, 0.95) / specs.f;
-  const bikeMps = medSpd(allBikes, 8.33) / specs.f;
-  const runMps  = medSpd(allRuns,  3.10) / specs.f;
+  const shiftMult = 1 + (paceShiftPct / 100); // negative = faster target time, positive = conservative
+  const swimMps = (medSpd(allSwims, 0.95) / specs.f) / shiftMult;
+  const bikeMps = (medSpd(allBikes, 8.33) / specs.f) / shiftMult;
+  const runMps  = (medSpd(allRuns,  3.10) / specs.f) / shiftMult;
 
   const swimS = specs.s / swimMps;
   const bikeS = specs.b / bikeMps;
   const runS  = specs.r / runMps;
   const totS  = swimS + bikeS + runS + specs.t;
 
+  const modeTxt = paceShiftPct === 0 ? 'Fitness Default (0%)' : paceShiftPct < 0 ? `Aggressive (${paceShiftPct}% time)` : `Conservative (+${paceShiftPct}% time)`;
+  $('#paceSliderLbl').textContent = modeTxt;
+
+  const swPace100 = fmtPace((swimS/60)/(specs.s/100));
+  const bkSpdKmh  = (specs.b/bikeS*3.6).toFixed(1);
+  const rnPaceKm  = (runS/60)/(specs.r/1000);
+  const rnPace1st = fmtPace(rnPaceKm * 1.02); // Negative split strategy: 2% controlled first half
+  const rnPace2nd = fmtPace(rnPaceKm * 0.98); // 2% faster second half
+
   $('#predGrid').innerHTML = `
-    <div class="kv"><div class="k">Est. Finish Time</div><div class="v" style="color:var(--accent)">${hms(totS)}</div></div>
-    <div class="kv"><div class="k">Swim Split</div><div class="v">${hms(swimS)} <small class="mut" style="font-size:11px">(${fmtPace((swimS/60)/(specs.s/100))}/100m)</small></div></div>
-    <div class="kv"><div class="k">Bike Split</div><div class="v">${hms(bikeS)} <small class="mut" style="font-size:11px">(${(specs.b/bikeS*3.6).toFixed(1)} km/h)</small></div></div>
-    <div class="kv"><div class="k">Run Split</div><div class="v">${hms(runS)} <small class="mut" style="font-size:11px">(${fmtPace((runS/60)/(specs.r/1000))}/km)</small></div></div>
+    <div class="kv"><div class="k">Target Finish Time</div><div class="v" style="color:var(--accent)">${hms(totS)}</div></div>
+    <div class="kv"><div class="k">Swim Split</div><div class="v">${hms(swimS)} <small class="mut" style="font-size:11px">(${swPace100}/100m)</small></div></div>
+    <div class="kv"><div class="k">Bike Split</div><div class="v">${hms(bikeS)} <small class="mut" style="font-size:11px">(${bkSpdKmh} km/h)</small></div></div>
+    <div class="kv"><div class="k">Run Split</div><div class="v">${hms(runS)} <small class="mut" style="font-size:11px">(${fmtPace(rnPaceKm)}/km)</small></div></div>
     <div class="kv"><div class="k">Transitions (T1+T2)</div><div class="v">${hms(specs.t)}</div></div>
     <div class="kv"><div class="k">Fatigue Factor</div><div class="v">${Math.round((specs.f-1)*100)>=0?'+'+Math.round((specs.f-1)*100):Math.round((specs.f-1)*100)}% decay</div></div>
+  `;
+
+  // Race-Day Pacing & Heart Rate Cap Execution Plan (Karvonen HRR calibrated)
+  const hrCaps = {
+    'sprint':  { sw:'148–158 bpm (Z3)', bk:'155–165 bpm (Z3/Z4)', rn:'163–173 bpm (Z4 Thresh)' },
+    'olympic': { sw:'144–154 bpm (Z2/Z3)', bk:'148–158 bpm (Z3 Tempo)', rn:'156–166 bpm (Z3/Z4)' },
+    '70.3':    { sw:'138–148 bpm (Z2 Base)', bk:'140–150 bpm (Cap <152)', rn:'146–158 bpm → 163+ final 5k' },
+    '140.6':   { sw:'132–142 bpm (Z2 Easy)', bk:'132–144 bpm (Strict Z2)', rn:'138–149 bpm (Z2 Steady)' }
+  }[predDist];
+
+  $('#pacePlanGrid').innerHTML = `
+    <div class="pace-leg">
+      <div class="pace-leg-hd" style="color:var(--swim)"><span>1. Swim Execution (${(specs.s/1000).toFixed(2)}k)</span><span>${swPace100}/100m</span></div>
+      <div class="pace-leg-main">HR Cap: ${hrCaps.sw}</div>
+      <div class="pace-leg-sub">Settle rhythm after first 200m buoy · Sight every 6–8 strokes · Draft feet to save ~8% oxygen cost.</div>
+    </div>
+    <div class="pace-leg">
+      <div class="pace-leg-hd" style="color:var(--bike)"><span>2. Bike Discipline (${(specs.b/1000).toFixed(0)}k)</span><span>${bkSpdKmh} km/h</span></div>
+      <div class="pace-leg-main">HR Cap: ${hrCaps.bk}</div>
+      <div class="pace-leg-sub">Keep cadence 82–90 rpm · Never surge hills above Z3 in first ${(specs.b/2000).toFixed(0)} km · Start sipping carbs at min 10.</div>
+    </div>
+    <div class="pace-leg">
+      <div class="pace-leg-hd" style="color:var(--run)"><span>3. Run Negative Split (${(specs.r/1000).toFixed(1)}k)</span><span>${fmtPace(rnPaceKm)}/km</span></div>
+      <div class="pace-leg-main">1st Half ${rnPace1st} → 2nd ${rnPace2nd}</div>
+      <div class="pace-leg-sub">HR ${hrCaps.rn} · Hold rhythm first 3 km off bike · Ice/water at every aid station.</div>
+    </div>
   `;
 
   // Race-Day Fueling & Hydration Strategy (Bike + Run fueling hours)
@@ -1006,8 +1202,8 @@ function renderPerformance(inR) {
       <div class="fuel-item"><b>${sodRate} mg/hr</b><span>~${Math.round(sodRate*fuelHrs)} mg sodium</span></div>
     </div>
   `;
+
   // 1. Heart Rate Zones — Karvonen (HRR) Triathlon Calibration
-  // Z1 <132 | Z2 132–149 | Z3 150–162 | Z4 163–173 | Z5 174+ bpm
   const zSec = [0, 0, 0, 0, 0];
   inR.forEach(a => {
     const az = actHRZones(a).sec;
@@ -1027,45 +1223,72 @@ function renderPerformance(inR) {
     </div>`;
   }).join('');
 
-  // 2. Personal Bests & Key Metrics in range (tappable to view the exact workout)
-  const runs = inR.filter(a=>a.sport==='run' && a.distance_m>500 && a.duration_s);
-  const bikes = inR.filter(a=>a.sport==='bike' && a.distance_m>1000 && a.duration_s);
-  const swims = inR.filter(a=>a.sport==='swim' && a.distance_m>100 && a.duration_s);
+  // 2. Trophy Cabinet & Personal Records (All-Time vs Selected Range)
+  const pool = prScope === 'all' ? acts : inR;
+  const runs = pool.filter(a=>a.sport==='run' && a.distance_m>=1000 && a.duration_s);
+  const runs5k = pool.filter(a=>a.sport==='run' && a.distance_m>=4800 && a.duration_s);
+  const runs10k = pool.filter(a=>a.sport==='run' && a.distance_m>=9500 && a.duration_s);
+  const bikes = pool.filter(a=>a.sport==='bike' && a.distance_m>=5000 && a.duration_s);
+  const swims = pool.filter(a=>a.sport==='swim' && a.distance_m>=200 && a.duration_s);
   const minBy = (arr, fn) => arr.length ? arr.reduce((b,a)=>fn(a)<fn(b)?a:b, arr[0]) : null;
   const maxBy = (arr, fn) => arr.length ? arr.reduce((b,a)=>fn(a)>fn(b)?a:b, arr[0]) : null;
-  const fRun = minBy(runs, a=>(a.duration_s/60)/(a.distance_m/1000));
+
+  const fRun = minBy(runs5k.length ? runs5k : runs, a=>(a.duration_s/60)/(a.distance_m/1000));
+  const fRun10 = minBy(runs10k, a=>(a.duration_s/60)/(a.distance_m/1000));
   const fBike = maxBy(bikes, a=>a.distance_m/a.duration_s*3.6);
   const fSwim = minBy(swims, a=>(a.duration_s/60)/(a.distance_m/100));
-  const lRun = maxBy(inR.filter(a=>a.sport==='run'), a=>a.distance_m||0);
-  const lBike = maxBy(inR.filter(a=>a.sport==='bike'), a=>a.distance_m||0);
-  const lSwim = maxBy(inR.filter(a=>a.sport==='swim'), a=>a.distance_m||0);
+  const lRun = maxBy(pool.filter(a=>a.sport==='run'), a=>a.distance_m||0);
+  const lBike = maxBy(pool.filter(a=>a.sport==='bike'), a=>a.distance_m||0);
+  const lSwim = maxBy(pool.filter(a=>a.sport==='swim'), a=>a.distance_m||0);
+  const bestEfRun = maxBy(runs.filter(a=>a.avg_hr), a=>(a.distance_m/(a.duration_s/60))/a.avg_hr);
+  const highestLoad = maxBy(pool, a=>actLoad(a));
 
   const prTile = (lbl, val, act) => `<div class="kv${act?' tappable':''}" ${act?`data-id="${act.summary_id}"`:''}>
-    <div class="k">${lbl}</div>
+    <div class="k">🏆 ${lbl}</div>
     <div class="v">${val}</div>
-    ${act ? `<div class="mut" style="font-size:10.5px;margin-top:2px">${act.start_time.slice(5,10)} · Tap to inspect</div>` : ''}
+    ${act ? `<div class="mut" style="font-size:10.5px;margin-top:2px">${act.start_time.slice(0,10)} · ${km(act.distance_m||0)}k</div>` : ''}
   </div>`;
 
   $('#prGrid').innerHTML =
-      prTile('Fastest Run Avg', fRun ? fmtPace((fRun.duration_s/60)/(fRun.distance_m/1000))+'/km' : '–', fRun)
+      prTile('Best 5K+ Run Pace', fRun ? fmtPace((fRun.duration_s/60)/(fRun.distance_m/1000))+'/km' : '–', fRun)
+    + prTile('Best 10K+ Run Pace', fRun10 ? fmtPace((fRun10.duration_s/60)/(fRun10.distance_m/1000))+'/km' : '–', fRun10)
     + prTile('Fastest Bike Avg', fBike ? (fBike.distance_m/fBike.duration_s*3.6).toFixed(1)+' km/h' : '–', fBike)
-    + prTile('Fastest Swim Avg', fSwim ? fmtPace((fSwim.duration_s/60)/(fSwim.distance_m/100))+'/100m' : '–', fSwim)
+    + prTile('Fastest Swim Pace', fSwim ? fmtPace((fSwim.duration_s/60)/(fSwim.distance_m/100))+'/100m' : '–', fSwim)
     + prTile('Longest Run', lRun ? km(lRun.distance_m)+' km' : '–', lRun)
     + prTile('Longest Ride', lBike ? km(lBike.distance_m)+' km' : '–', lBike)
-    + prTile('Longest Swim', lSwim ? km(lSwim.distance_m)+' km' : '–', lSwim);
+    + prTile('Longest Swim', lSwim ? km(lSwim.distance_m)+' km' : '–', lSwim)
+    + prTile('Peak Run Efficiency', bestEfRun ? ((bestEfRun.distance_m/(bestEfRun.duration_s/60))/bestEfRun.avg_hr).toFixed(2)+' EF' : '–', bestEfRun)
+    + prTile('Biggest Session Load', highestLoad ? actLoad(highestLoad)+' TL' : '–', highestLoad);
   document.querySelectorAll('#prGrid .kv[data-id]').forEach(el => {
     el.onclick = () => openActivitySheet(el.dataset.id);
   });
 
-  // 3. Aerobic Efficiency Factor (Speed in m/min divided by Avg HR)
+  // 3. Aerobic Efficiency & Decoupling Trend (Speed in m/min divided by Avg HR)
   const efActs = acts.filter(a => (a.sport==='run' || a.sport==='bike') && a.distance_m>1000 && a.duration_s && a.avg_hr);
+  const runEfList = efActs.filter(a => a.sport==='run').map(a => ({ a, ef: (a.distance_m/(a.duration_s/60))/a.avg_hr }));
+  const bikeEfList = efActs.filter(a => a.sport==='bike').map(a => ({ a, ef: (a.distance_m/(a.duration_s/60))/a.avg_hr }));
+  const avgEf = arr => arr.length ? arr.reduce((s,x)=>s+x.ef,0)/arr.length : null;
+  const curRunEf = avgEf(runEfList.slice(-4));
+  const prevRunEf = avgEf(runEfList.slice(0, Math.max(1, runEfList.length-4)));
+  const runEfDeltaPct = (curRunEf && prevRunEf) ? ((curRunEf / prevRunEf - 1) * 100) : 0;
+  const curBikeEf = avgEf(bikeEfList.slice(-4));
+  const z2Runs = runEfList.filter(x => x.a.avg_hr >= 130 && x.a.avg_hr <= 152);
+  const z2RunPace = z2Runs.length ? fmtPace((z2Runs[z2Runs.length-1].a.duration_s/60)/(z2Runs[z2Runs.length-1].a.distance_m/1000))+'/km' : '–';
+
+  $('#efGainPill').textContent = curRunEf ? `Run EF ${runEfDeltaPct>=0?'+':''}${runEfDeltaPct.toFixed(1)}% vs baseline` : 'Higher = fitter at same HR';
+  $('#efPills').innerHTML = `
+    <div class="pmc-pill"><div class="lbl">Run Aerobic EF</div><div class="val" style="color:${COLORS.run}">${curRunEf ? curRunEf.toFixed(2) : '–'}</div><div class="sub">${runEfDeltaPct>=0?'+':''}${runEfDeltaPct.toFixed(1)}% aerobic gain</div></div>
+    <div class="pmc-pill"><div class="lbl">Bike Aerobic EF</div><div class="val" style="color:${COLORS.bike}">${curBikeEf ? curBikeEf.toFixed(2) : '–'}</div><div class="sub">Meters/min per bpm</div></div>
+    <div class="pmc-pill"><div class="lbl">Latest Z2 Base Pace</div><div class="val" style="color:${C('--green')}">${z2RunPace}</div><div class="sub">At 132–149 bpm HRR</div></div>
+  `;
+
   mkChart('efChart', {
     type:'line',
     data:{
       labels: efActs.map(a=>a.start_time.slice(5,10)),
       datasets:[
         {label:'Run EF (m/min per bpm)', data:efActs.map(a=>a.sport==='run' ? +((a.distance_m/(a.duration_s/60))/a.avg_hr).toFixed(2) : null), borderColor:COLORS.run, backgroundColor:COLORS.run, spanGaps:true, tension:.3, pointRadius:3},
-        {label:'Bike EF (scaled)', data:efActs.map(a=>a.sport==='bike' ? +((a.distance_m/(a.duration_s/60))/a.avg_hr/2.5).toFixed(2) : null), borderColor:COLORS.bike, backgroundColor:COLORS.bike, spanGaps:true, tension:.3, pointRadius:3}
+        {label:'Bike EF (scaled ÷2.5)', data:efActs.map(a=>a.sport==='bike' ? +((a.distance_m/(a.duration_s/60))/a.avg_hr/2.5).toFixed(2) : null), borderColor:COLORS.bike, backgroundColor:COLORS.bike, spanGaps:true, tension:.3, pointRadius:3}
       ]
     },
     options:{scales:{x:axis,y:axis},plugins:{legend:{labels:{color:C('--txt')}}}}
@@ -1151,6 +1374,7 @@ function renderRecovery(days) {
 
 function renderLog(inR, bricks) {
   const q = ($('#logSearch')?.value || '').trim().toLowerCase();
+  const prMap = getAllTimePRIds();
   const list = [...inR].filter(a => {
     if (logSportFilter !== 'all' && a.sport !== logSportFilter) return false;
     if (!q) return true;
@@ -1162,9 +1386,11 @@ function renderLog(inR, bricks) {
     const d = a.start_time.slice(0,10);
     const name = a.raw?.activityName || a.sport.toUpperCase();
     const brk = bricks.has(d) && (a.sport==='bike'||a.sport==='run') ? `<span class="badge">Brick</span>` : '';
+    const prTag = prMap.get(String(a.summary_id));
+    const prBadge = prTag ? `<span class="badge badge-pr">🏆 ${prTag}</span>` : '';
     return `<tr data-id="${a.summary_id}">
       <td>${d.slice(5)}</td>
-      <td><span class="dot" style="background:${COLORS[a.sport]}"></span><b>${name}</b>${brk}</td>
+      <td><span class="dot" style="background:${COLORS[a.sport]}"></span><b>${name}</b>${brk}${prBadge}</td>
       <td>${km(a.distance_m||0)} km</td>
       <td>${hms(a.duration_s)}</td>
       <td>${fmtSportSpeed(a)}</td>
@@ -1457,7 +1683,9 @@ $('#editGearBtn').onclick = openGoalSheet;
 $('#goalClose').onclick = () => $('#goalSheet').classList.remove('on');
 $('#goalSheet').onclick = (e) => { if (e.target.id === 'goalSheet') $('#goalSheet').classList.remove('on'); };
 $('#saveGoals').onclick = () => {
+  const prev = getGoals();
   setGoals({
+    ...prev,
     raceName: $('#inRaceName').value.trim() || 'Race Day',
     raceDate: $('#inRaceDate').value,
     wkHrs: parseFloat($('#inWkHrs').value) || 8,
@@ -1478,6 +1706,12 @@ $('#saveGoals').onclick = () => {
 document.querySelectorAll('#predTabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#predTabs button').forEach(e => e.classList.remove('on'));
   b.classList.add('on'); predDist = b.dataset.d; render();
+});
+$('#paceSlider').oninput = (e) => { paceShiftPct = +e.target.value || 0; render(); };
+$('#paceResetBtn').onclick = () => { paceShiftPct = 0; $('#paceSlider').value = 0; render(); };
+document.querySelectorAll('#prScopeSeg button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#prScopeSeg button').forEach(e => e.classList.remove('on'));
+  b.classList.add('on'); prScope = b.dataset.sc; render();
 });
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button,.tab').forEach(e => e.classList.remove('on'));
